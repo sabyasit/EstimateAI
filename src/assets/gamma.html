@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gamma Correction</title>
+</head>
+<body>
+  <input type="file" id="fileInput" accept="image/*">
+  <canvas id="canvas"></canvas>
+  <label for="gamma">Gamma:</label>
+  <input type="range" id="gamma" min="1" max="10" value="5" step="1">
+  
+<script>
+document.getElementById('fileInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      // Get gamma value
+      const gammaValue = parseFloat(document.getElementById('gamma').value);
+
+      // Get image data
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      // Apply gamma correction
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.pow(data[i] / 255, gammaValue) * 255; // Red
+        data[i + 1] = Math.pow(data[i + 1] / 255, gammaValue) * 255; // Green
+        data[i + 2] = Math.pow(data[i + 2] / 255, gammaValue) * 255; // Blue
+      }
+
+      // Put modified image data back to canvas
+      ctx.putImageData(imageData, 0, 0);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Event listener for gamma adjustment
+document.getElementById('gamma').addEventListener('input', function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Redraw image with new gamma value
+  const gammaValue = parseFloat(document.getElementById('gamma').value);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = Math.pow(data[i] / 255, gammaValue) * 255; // Red
+    data[i + 1] = Math.pow(data[i + 1] / 255, gammaValue) * 255; // Green
+    data[i + 2] = Math.pow(data[i + 2] / 255, gammaValue) * 255; // Blue
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+});
+</script>
+</body>
+</html>

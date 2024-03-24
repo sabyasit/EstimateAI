@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edge Detection and Rectangle Detection</title>
+
+</head>
+<body>
+  <input type="file" id="fileInput" accept="image/*">
+  <canvas id="canvas"></canvas>
+  
+<script>
+let cv;
+let canvas;
+let ctx;
+
+function onOpenCvReady() {
+  // OpenCV.js is ready
+  cv = cv || window.cv;
+}
+
+document.getElementById('fileInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      canvas = document.getElementById('canvas');
+      ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      // Detect edges and rectangles
+      detectEdgesAndRectangles(canvas);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+async function detectEdgesAndRectangles(canvas) {
+  // Convert canvas to OpenCV Mat
+  const src = cv.imread(canvas);
+
+  // Convert image to grayscale
+  const gray = new cv.Mat();
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+  // Detect edges using Canny edge detector
+  const edges = new cv.Mat();
+  cv.Canny(gray, edges, 50, 150, 3);
+
+  // Find contours
+  const contours = new cv.MatVector();
+  const hierarchy = new cv.Mat();
+  cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+  // Find rectangles
+  const rectangles = [];
+  for (let i = 0; i < contours.size(); i++) {
+    const contour = contours.get(i);
+    const peri = cv.arcLength(contour, true);
+    const approx = new cv.Mat();
+    cv.approxPolyDP(contour, approx, 0.02 * peri, true);
+    if (approx.size().height === 4) {
+      const points = [];
+      for (let j = 0; j < approx.size().height; j++) {
+        points.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] });
+      }
+      rectangles.push(points);
+    }
+    approx.delete();
+    contour.delete();
+  }
+
+  // Draw rectangles
+  for (let i = 0; i < rectangles.length; i++) {
+    ctx.beginPath();
+    ctx.moveTo(rectangles[i][0].x, rectangles[i][0].y);
+    for (let j = 1; j < 4; j++) {
+      ctx.lineTo(rectangles[i][j].x, rectangles[i][j].y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Clean up
+  src.delete();
+  gray.delete();
+  edges.delete();
+  contours.delete();
+  hierarchy.delete();
+}
+</script>
+<script src="https://docs.opencv.org/4.5.5/opencv.js" onload="onOpenCvReady()"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<h1 mat-dialog-title>Section Estimate</h1>
+<div mat-dialog-content>
+    <form [formGroup]="form" class="form-main">
+        <mat-form-field>
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name">
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+            <mat-label>Unit</mat-label>
+            <mat-select formControlName="unit">
+                <mat-option *ngFor="let item of units" [value]="item">
+                    {{item}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+            <mat-label>View</mat-label>
+            <mat-select formControlName="view">
+                <mat-option *ngFor="let view of model.master.views" [value]="view.item">
+                    {{view.item}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+            <mat-label>Service Integration</mat-label>
+            <mat-select formControlName="service">
+                <mat-option *ngFor="let service of model.master.services" [value]="service.item">
+                    {{service.item}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+            <mat-label>Logic & Model</mat-label>
+            <mat-select formControlName="logic">
+                <mat-option *ngFor="let logic of model.master.logics" [value]="logic.item">
+                    {{logic.item}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-checkbox style="margin-bottom: 16px;" formControlName="common">Common</mat-checkbox>
+        <mat-form-field>
+            <mat-label>color</mat-label>
+            <input matInput type="color" formControlName="color">
+        </mat-form-field>
+    </form>
+</div>
+<div mat-dialog-actions align="end">
+    <button color="secondary" mat-raised-button mat-dialog-close>Cancel</button>
+    <button color="primary" mat-raised-button [disabled]="!form.valid" (click)="onSave()">Save</button>
+</div>

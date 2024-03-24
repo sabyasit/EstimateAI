@@ -1,0 +1,19 @@
+<div class="container">
+    <div class="new-file">
+        <mat-form-field class="example-full-width">
+            <mat-label>Project Name</mat-label>
+            <input matInput [(ngModel)] = "model.projectName">
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="onNewClick(newFileUpload)">
+            <mat-icon>add</mat-icon>
+            Select File (Pdf)</button>
+        <input #newFileUpload type="file" (change)="onNewFileSelected($event)" style="display: none;">
+    </div>
+    <div class="middle">OR</div>
+    <div class="existing-file">
+        <button mat-raised-button color="warn" (click)="onExistingClick(existingFileUpload)">
+            <mat-icon>add</mat-icon>
+            Select File (JSON)</button>
+        <input #existingFileUpload type="file" (change)="onExistingFileSelected($event)" style="display: none;">
+    </div>
+</div>

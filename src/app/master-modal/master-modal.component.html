@@ -1,0 +1,50 @@
+<h1 mat-dialog-title>Master Details</h1>
+<div mat-dialog-content>
+    <mat-tab-group>
+        <mat-tab label="View">
+            <div class="master-content">
+                <ng-container *ngFor="let view of model.master.views">
+                    <mat-form-field>
+                        <mat-label>{{view.item}}</mat-label>
+                        <input matInput type="number" [(ngModel)]="view.hr">
+                    </mat-form-field>
+                </ng-container>
+            </div>
+        </mat-tab>
+        <mat-tab label="Service Integration">
+            <div class="master-content">
+                <ng-container *ngFor="let service of model.master.services">
+                    <mat-form-field>
+                        <mat-label>{{service.item}}</mat-label>
+                        <input matInput type="number" [(ngModel)]="service.hr">
+                    </mat-form-field>
+                </ng-container>
+            </div>
+        </mat-tab>
+        <mat-tab label="Logic & Model">
+            <div class="master-content">
+                <ng-container *ngFor="let logic of model.master.logics">
+                    <mat-form-field>
+                        <mat-label>{{logic.item}}</mat-label>
+                        <input matInput type="number" [(ngModel)]="logic.hr">
+                    </mat-form-field>
+                </ng-container>
+            </div>
+        </mat-tab>
+        <mat-tab label="miscellaneous">
+            <div class="master-content">
+                <mat-form-field>
+                    <mat-label>Unit test effort (%)</mat-label>
+                    <input matInput type="number" [(ngModel)]="model.master.unitTestPer">
+                </mat-form-field>
+                <mat-form-field>
+                    <mat-label>Person day hours</mat-label>
+                    <input matInput type="number" [(ngModel)]="model.master.personHours">
+                </mat-form-field>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>
+<div mat-dialog-actions align="end">
+    <button color="secondary" mat-raised-button mat-dialog-close>Ok</button>
+</div>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edge Detection</title>
+</head>
+<body>
+  <input type="file" id="fileInput" accept="image/*">
+  <canvas id="canvas"></canvas>
+  
+<script>
+document.getElementById('fileInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      // Detect edges
+      detectEdges(canvas);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Function to detect edges using Sobel operator
+function detectEdges(canvas) {
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  const newData = new Uint8ClampedArray(data.length);
+
+  // Sobel operator kernels
+  const sobelX = [
+    [-1, 0, 1],
+    [-2, 0, 2],
+    [-1, 0, 1]
+  ];
+
+  const sobelY = [
+    [-1, -2, -1],
+    [0, 0, 0],
+    [1, 2, 1]
+  ];
+
+  // Apply convolution
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let gx = 0, gy = 0;
+      for (let j = -1; j <= 1; j++) {
+        for (let i = -1; i <= 1; i++) {
+          const pixelX = x + i;
+          const pixelY = y + j;
+          const offset = (pixelY * width + pixelX) * 4;
+          const weightX = sobelX[j + 1][i + 1];
+          const weightY = sobelY[j + 1][i + 1];
+          gx += data[offset] * weightX;
+          gy += data[offset] * weightY;
+        }
+      }
+      const offset = (y * width + x) * 4;
+      const magnitude = Math.sqrt(gx * gx + gy * gy);
+      newData[offset] = magnitude;
+      newData[offset + 1] = magnitude;
+      newData[offset + 2] = magnitude;
+      newData[offset + 3] = 255; // Alpha channel
+    }
+  }
+
+  // Put edge-detected image data back to canvas
+  const newImageData = new ImageData(newData, width, height);
+  ctx.putImageData(newImageData, 0, 0);
+}
+</script>
+</body>
+</html>

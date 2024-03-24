@@ -1,0 +1,100 @@
+<div class="container">
+    <div class="header">
+        <label>{{model.projectName}}</label>
+        <div class="total-estimate" *ngIf="totalEstimate() as item">
+            {{item.totalHr}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+        </div>
+        <button mat-icon-button (click)="onMasterModal()">
+            <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onDownload()">
+            <mat-icon>cloud_download</mat-icon>
+        </button>
+    </div>
+    <div class="content">
+        <div class="left-panel">
+            <ng-container *ngFor="let page of model.pages; index as i">
+                <div class="left-panel-item" [ngClass]="{'selected': i === currentPageIndex}">
+                    <img [src]="page.data" [ngClass]="{'selected': i === currentPageIndex}" (click)="renderPage(i)" />
+                    <label>{{page.name}}</label>
+                    <mat-icon *ngIf="page.complete">check</mat-icon>
+                </div>
+            </ng-container>
+        </div>
+        <div class="map-content">
+            <div id="map">
+                <button mat-fab color="primary" (click)="changeDrawMode()">
+                    <mat-icon>{{!drawEditMode ? 'edit' : 'ac_unit'}}</mat-icon>
+                </button>
+            </div>
+        </div>
+        <div class="right-panel" *ngIf="calculatePageHrs() as item">
+            <div class="panel-page-name">
+                <input type="text" [(ngModel)]="model.pages[this.currentPageIndex].name" (input)="onPageNameChange()" />
+            </div>
+            <div class="panel-total">
+                <div class="panel-value">
+                    {{item.totalHr}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+                </div>
+            </div>
+            <div class="panel-other">
+                <div class="panel-dev-ut">
+                    <div class="panel-dev-ut-value">
+                        {{item.devHr}}<span>Hrs</span> | {{item.devPd}}<span>Pd</span>
+                    </div>
+                    <div class="panel-dev-ut-text">Development</div>
+                </div>
+                <div class="panel-dev-ut">
+                    <div class="panel-dev-ut-value">
+                        {{item.unitTestHr}}<span>Hrs</span> | {{item.unitTestPd}}<span>Pd</span>
+                    </div>
+                    <div class="panel-dev-ut-text">Unit Test</div>
+                </div>
+            </div>
+            <div class="panel-sections">
+                <ng-container *ngFor="let feature of model.pages[this.currentPageIndex].features">
+                    <ng-container *ngIf="calculatePageHrs(feature.id) as item">
+                        <div class="panel-sections-item" (mouseenter)="onFocusToggleFeature(true, feature.id)"
+                            (mouseleave)="onFocusToggleFeature(false, feature.id)">
+                            <mat-icon [style.color]="feature.color" style="cursor: pointer;"
+                                [matMenuTriggerFor]="menu">circle</mat-icon>
+                            <mat-menu #menu="matMenu">
+                                <button mat-menu-item (click)="openEstimateModal(true, feature, null)">
+                                    <span>Edit</span>
+                                </button>
+                                <button mat-menu-item (click)="deleteFeature(feature.id)">
+                                    <span>Delete</span>
+                                </button>
+                            </mat-menu>
+                            <div class="panel-sections-item-details">
+                                <div class="panel-sections-item-name">
+                                    <div class="panel-sections-item-name-value">{{feature.name}}</div>
+                                    <div class="panel-sections-item-name-pd">
+                                        {{item.totalHr}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+                                    </div>
+                                </div>
+                                <div class="panel-sections-item-data">
+                                    <div class="panel-sections-item-data-dev-ut">
+                                        <div class="panel-sections-item-data-dev-ut-text">Development -</div>
+                                        <div class="panel-sections-item-data-dev-ut-value">
+                                            {{item.devHr}}<span>Hrs</span> | {{item.devPd}}<span>Pd</span>
+                                        </div>
+                                    </div>
+                                    <div class="panel-sections-item-data-dev-ut">
+                                        <div class="panel-sections-item-data-dev-ut-text">Unit Test -</div>
+                                        <div class="panel-sections-item-data-dev-ut-value">
+                                            {{item.unitTestHr}}<span>Hrs</span> | {{item.unitTestPd}}<span>Pd</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                </ng-container>
+            </div>
+            <div class="panel-footer">
+                <button mat-raised-button color="primary" (click)="onComplete()">Complete</button>
+            </div>
+        </div>
+    </div>
+</div>

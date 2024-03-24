@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sepia Conversion</title>
+</head>
+<body>
+  <input type="file" id="fileInput" accept="image/*">
+  <canvas id="canvas"></canvas>
+  <label for="strength">Strength:</label>
+  <input type="range" id="strength" min="0" max="2" value="1" step="0.1">
+  
+<script>
+document.getElementById('fileInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      // Get strength value
+      const strength = parseFloat(document.getElementById('strength').value);
+
+      // Convert image to sepia
+      convertToSepia(canvas, strength);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Function to convert the image to sepia
+function convertToSepia(canvas, strength) {
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+
+  // Apply sepia effect
+  for (let i = 0; i < data.length; i += 4) {
+    const originalR = data[i];
+    const originalG = data[i + 1];
+    const originalB = data[i + 2];
+
+    // Calculate new RGB values for sepia effect
+    const sepiaR = Math.min(255, (originalR * 0.393 + originalG * 0.769 + originalB * 0.189) * strength);
+    const sepiaG = Math.min(255, (originalR * 0.349 + originalG * 0.686 + originalB * 0.168) * strength);
+    const sepiaB = Math.min(255, (originalR * 0.272 + originalG * 0.534 + originalB * 0.131) * strength);
+
+    // Set new RGB values
+    data[i] = sepiaR;
+    data[i + 1] = sepiaG;
+    data[i + 2] = sepiaB;
+  }
+
+  // Update canvas with sepia image
+  ctx.putImageData(imageData, 0, 0);
+}
+
+// Event listener for strength adjustment
+document.getElementById('strength').addEventListener('input', function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const strength = parseFloat(document.getElementById('strength').value);
+
+  // Reapply sepia effect with new strength value
+  convertToSepia(canvas, strength);
+});
+</script>
+</body>
+</html>

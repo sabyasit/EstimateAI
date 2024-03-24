@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Sharpening</title>
+</head>
+<body>
+  <input type="file" id="fileInput" accept="image/*">
+  <canvas id="canvas"></canvas>
+  <label for="strength">Strength:</label>
+  <input type="range" id="strength" min="0" max="5" value=".3" step="0.1">
+  
+<script>
+document.getElementById('fileInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      // Get strength value
+      const strength = parseFloat(document.getElementById('strength').value);
+
+      // Sharpen image
+      sharpenImage(canvas, strength);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Function to sharpen the image
+function sharpenImage(canvas, strength) {
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+
+  // Create a copy of the image data
+  const copyData = new Uint8ClampedArray(data);
+
+  // Convolution mask for sharpening (5x5)
+  const kernel = [
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, 24, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1]
+  ];
+
+  const kernelSize = 5;
+  const kernelRadius = Math.floor(kernelSize / 2);
+
+  // Apply convolution
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sumR = 0, sumG = 0, sumB = 0;
+      for (let ky = 0; ky < kernelSize; ky++) {
+        for (let kx = 0; kx < kernelSize; kx++) {
+          const pixelX = x + kx - kernelRadius;
+          const pixelY = y + ky - kernelRadius;
+          if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+            const offset = (pixelY * width + pixelX) * 4;
+            const weight = kernel[ky][kx];
+            sumR += copyData[offset] * weight;
+            sumG += copyData[offset + 1] * weight;
+            sumB += copyData[offset + 2] * weight;
+          }
+        }
+      }
+      const offset = (y * width + x) * 4;
+      data[offset] = Math.min(255, Math.max(0, data[offset] + sumR * strength));
+      data[offset + 1] = Math.min(255, Math.max(0, data[offset + 1] + sumG * strength));
+      data[offset + 2] = Math.min(255, Math.max(0, data[offset + 2] + sumB * strength));
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+// Event listener for strength adjustment
+document.getElementById('strength').addEventListener('input', function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const strength = parseFloat(document.getElementById('strength').value);
+
+  // Reapply sharpening with new strength value
+  sharpenImage(canvas, strength);
+});
+</script>
+</body>
+</html>
