@@ -20,6 +20,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ImageWorkerService } from './image-worker.service';
 
@@ -46,7 +47,8 @@ import { ImageWorkerService } from './image-worker.service';
     MatCheckboxModule,
     MatMenuModule,
     MatTabsModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatTooltipModule
   ],
   providers: [ImageWorkerService],
   bootstrap: [AppComponent]

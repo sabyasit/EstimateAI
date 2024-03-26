@@ -23,8 +23,9 @@
         </div>
         <div class="map-content">
             <div id="map">
-                <button mat-fab class="draw" color="primary" (click)="changeDrawMode()">
-                    <mat-icon>{{!drawEditMode ? 'edit' : 'pan_tool'}}</mat-icon>
+                <button mat-fab class="draw" color="primary" (click)="changeDrawMode()" matTooltipPosition="right"
+                matTooltip="{{drawEditMode === 1 ? 'Pan Mode' : (drawEditMode === 2 ? 'Add Mode' : 'Edit Mode')}}">
+                    <mat-icon>{{drawEditMode === 1 ? 'pan_tool' : (drawEditMode === 2 ? 'add' : 'edit')}}</mat-icon>
                 </button>
                 <button mat-fab class="magic" color="warn" (click)="processAI()">
                     <mat-icon>flare</mat-icon>

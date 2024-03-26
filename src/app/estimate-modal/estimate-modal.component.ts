@@ -23,7 +23,7 @@ export class EstimateModalComponent implements OnInit {
   });
 
   constructor(public dialogRef: MatDialogRef<EstimateModalComponent>,
-    @Inject(MAT_DIALOG_DATA) private data: any) { }
+    @Inject(MAT_DIALOG_DATA) public data: any) { }
 
   ngOnInit(): void {
     this.model = JSON.parse(sessionStorage.getItem('model')!);
@@ -45,6 +45,14 @@ export class EstimateModalComponent implements OnInit {
   }
 
   onSave() {
-    this.dialogRef.close(this.form.getRawValue());
+    this.dialogRef.close({ type: this.data.edit ? 'EDIT' : 'NEW', data: this.form.getRawValue() });
+  }
+
+  onDelete() {
+    this.dialogRef.close({ type: 'DELETE' });
+  }
+
+  onCancel() {
+    this.dialogRef.close(!this.data.edit ? { type: 'REMOVE' } : '');
   }
 }

@@ -7,6 +7,7 @@ import { Vector as VectorLayer } from 'ol/layer.js';
 import StaticImage from 'ol/source/ImageStatic';
 import View from 'ol/View';
 import Draw, { createBox } from 'ol/interaction/Draw.js';
+import { Modify, Snap } from 'ol/interaction.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import { Polygon } from 'ol/geom'
 import { Feature } from 'ol';
@@ -14,9 +15,9 @@ import Style from 'ol/style/Style';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import Text from 'ol/style/Text';
-import { Pixel } from 'ol/pixel';
 import Projection from 'ol/proj/Projection';
-import { getCenter } from 'ol/extent';
+
+import Transform from 'ol-ext/interaction/Transform';
 
 import { TrainModel } from '../train.model';
 import { EstimateModalComponent } from '../estimate-modal/estimate-modal.component';
@@ -33,8 +34,9 @@ export class TrainEstimateComponent implements OnInit {
   model!: TrainModel;
   map!: OpenLayerMap;
   draw!: Draw;
+  transform!: Transform;
   currentPageIndex: number = 0;
-  drawEditMode: boolean = true;
+  drawEditMode: number = 1;
   processLoader = { display: false, text: 'Changing exposure...', value: 0 }
 
   constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService) { }
@@ -46,7 +48,7 @@ export class TrainEstimateComponent implements OnInit {
 
   renderPage(index: number) {
     this.currentPageIndex = index;
-    this.drawEditMode = true;
+    this.drawEditMode = 1;
 
     if (this.map) {
       this.map.setTarget(undefined);
@@ -96,6 +98,29 @@ export class TrainEstimateComponent implements OnInit {
       geometryFunction: createBox(),
     });
 
+    this.transform = new Transform({
+      enableRotatedTransform: false,
+      rotate: false
+    })
+
+    this.transform.on("scaleend", (event: any) => {
+      for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
+        if (this.model.pages[this.currentPageIndex].features[i].id === event.feature.getId()) {
+          this.model.pages[this.currentPageIndex].features[i].coordinates = event.feature.getGeometry().getCoordinates();
+        }
+      }
+      sessionStorage.setItem('model', JSON.stringify(this.model));
+    });
+
+    this.transform.on("translateend", (event: any) => {
+      for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
+        if (this.model.pages[this.currentPageIndex].features[i].id === event.feature.getId()) {
+          this.model.pages[this.currentPageIndex].features[i].coordinates = event.feature.getGeometry().getCoordinates();
+        }
+      }
+      sessionStorage.setItem('model', JSON.stringify(this.model));
+    })
+
     this.map.getView().fit(extent, this.map.getSize() as any);
 
     if (this.model.pages[index].features) {
@@ -106,12 +131,12 @@ export class TrainEstimateComponent implements OnInit {
       }
     }
 
-    this.draw.on('drawend' as any, (event: any) => {
+    this.draw.on('drawend', (event: any) => {
       this.openEstimateModal(false, null, event);
     });
 
     this.map.on('pointermove', (event: any) => {
-      if (!this.drawEditMode) {
+      if (this.drawEditMode !== 1) {
         return;
       }
 
@@ -125,7 +150,7 @@ export class TrainEstimateComponent implements OnInit {
     })
 
     this.map.on('singleclick', (event: any) => {
-      if (!this.drawEditMode) {
+      if (this.drawEditMode !== 1) {
         return;
       }
 
@@ -177,44 +202,69 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   changeDrawMode() {
-    this.drawEditMode = !this.drawEditMode;
-    if (!this.drawEditMode) {
+    if (this.drawEditMode === 1) {
+      this.map.removeInteraction(this.transform);
       this.map.addInteraction(this.draw);
-    } else {
+      this.drawEditMode = 2;
+    } else if (this.drawEditMode === 2) {
+      this.map.addInteraction(this.transform);
       this.map.removeInteraction(this.draw);
+      this.drawEditMode = 3;
+    } else if (this.drawEditMode === 3) {
+      this.map.removeInteraction(this.transform);
+      this.map.removeInteraction(this.draw);
+      this.drawEditMode = 1;
     }
   }
 
   openEstimateModal(edit: boolean, data: any, event: any) {
-    debugger;
     this.dialog.open(EstimateModalComponent, {
       data: { edit: edit, value: data },
       width: '400px',
       autoFocus: false,
       disableClose: true
     }).afterClosed().subscribe((value: any) => {
-      if (!edit) {
+      if (!value) {
+        return;
+      }
+
+      if (value.type === 'REMOVE') {
         (this.map.getAllLayers()[1].getSource() as any).removeFeature(event.feature);
-        if (value) {
-          value.coordinates = event.feature.getGeometry().getCoordinates();
-          value.id = Date.now();
-          this.model.pages[this.currentPageIndex].features.push(value);
-          sessionStorage.setItem('model', JSON.stringify(this.model));
-          this.addFeature(value.id, value.coordinates, value.color);
-        }
-      } else {
-        if (value) {
-          for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
-            if (this.model.pages[this.currentPageIndex].features[i].id === data.id) {
-              this.model.pages[this.currentPageIndex].features[i].name = value.name;
-              this.model.pages[this.currentPageIndex].features[i].unit = value.unit;
-              this.model.pages[this.currentPageIndex].features[i].view = value.view;
-              this.model.pages[this.currentPageIndex].features[i].service = value.service;
-              this.model.pages[this.currentPageIndex].features[i].logic = value.logic;
-              this.model.pages[this.currentPageIndex].features[i].color = value.color;
-              this.model.pages[this.currentPageIndex].features[i].common = value.common;
-            }
+      }
+
+      if (value.type === 'NEW') {
+        (this.map.getAllLayers()[1].getSource() as any).removeFeature(event.feature);
+        value.data.coordinates = event.feature.getGeometry().getCoordinates();
+        value.data.id = Date.now();
+        this.model.pages[this.currentPageIndex].features.push(value.data);
+        sessionStorage.setItem('model', JSON.stringify(this.model));
+        this.addFeature(value.data.id, value.data.coordinates, value.data.color);
+      }
+
+      if (value.type === 'EDIT') {
+        for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
+          if (this.model.pages[this.currentPageIndex].features[i].id === data.id) {
+            this.model.pages[this.currentPageIndex].features[i].name = value.data.name;
+            this.model.pages[this.currentPageIndex].features[i].unit = value.data.unit;
+            this.model.pages[this.currentPageIndex].features[i].view = value.data.view;
+            this.model.pages[this.currentPageIndex].features[i].service = value.data.service;
+            this.model.pages[this.currentPageIndex].features[i].logic = value.data.logic;
+            this.model.pages[this.currentPageIndex].features[i].color = value.data.color;
+            this.model.pages[this.currentPageIndex].features[i].common = value.data.common;
           }
+        }
+        sessionStorage.setItem('model', JSON.stringify(this.model));
+      }
+
+      if (value.type === 'DELETE') {
+        const feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(data.id);
+        if (feature) {
+          (this.map.getAllLayers()[1].getSource() as VectorSource).removeFeature(feature);
+          (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
+
+          const index = this.model.pages[this.currentPageIndex].features.findIndex(x => x.id === data.id);
+          this.model.pages[this.currentPageIndex].features.splice(index, 1);
+
           sessionStorage.setItem('model', JSON.stringify(this.model));
         }
       }
@@ -339,6 +389,7 @@ export class TrainEstimateComponent implements OnInit {
         }));
         this.map.getAllLayers()[0].getSource()?.refresh();
         this.drawEdges(image);
+        sessionStorage.setItem('model', JSON.stringify(this.model));
         this.processLoader.display = false;
       }
     };
@@ -372,7 +423,7 @@ export class TrainEstimateComponent implements OnInit {
         service: "Simple CRUD",
         unit: 1,
         view: "Simple",
-        coordinates: []
+        coordinates: coordinates
       });
       this.addFeature(id + i, coordinates, `#${randomColor}`);
     }
