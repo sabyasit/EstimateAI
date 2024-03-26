@@ -14,10 +14,15 @@ import Style from 'ol/style/Style';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import Text from 'ol/style/Text';
+import { Pixel } from 'ol/pixel';
+import Projection from 'ol/proj/Projection';
+import { getCenter } from 'ol/extent';
 
 import { TrainModel } from '../train.model';
 import { EstimateModalComponent } from '../estimate-modal/estimate-modal.component';
 import { MasterModalComponent } from '../master-modal/master-modal.component';
+
+import { ImageWorkerService } from '../image-worker.service';
 
 @Component({
   selector: 'app-train-estimate',
@@ -30,8 +35,9 @@ export class TrainEstimateComponent implements OnInit {
   draw!: Draw;
   currentPageIndex: number = 0;
   drawEditMode: boolean = true;
+  processLoader = { display: false, text: 'Changing exposure...', value: 0 }
 
-  constructor(public dialog: MatDialog) { }
+  constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService) { }
 
   ngOnInit(): void {
     this.model = JSON.parse(sessionStorage.getItem('model')!);
@@ -47,16 +53,27 @@ export class TrainEstimateComponent implements OnInit {
       this.map.dispose();
     }
 
+    const extent = [0, 0, this.model.pages[index].width, this.model.pages[index].height];
+    const projection = new Projection({
+      code: 'xkcd-image',
+      units: 'pixels',
+      extent: extent,
+    });
+
     const imageLayer = new ImageLayer({
       source: new StaticImage({
         url: this.model.pages[index].data,
-        imageExtent: [0, 0, this.model.pages[index].width, this.model.pages[index].height]
+        imageExtent: extent,
+        projection: projection
       })
     })
 
     const view = new View({
-      extent: imageLayer.getSource()?.getImageExtent(),
+      projection: projection,
       constrainOnlyCenter: true,
+      // center: getCenter(extent),
+      // zoom: this.getZoom(),
+      // minZoom: this.getZoom(),
       padding: [10, 10, 10, 10]
     })
 
@@ -79,8 +96,7 @@ export class TrainEstimateComponent implements OnInit {
       geometryFunction: createBox(),
     });
 
-    this.map.getView().fit(imageLayer.getSource()?.getImageExtent() as any,
-      this.map.getSize() as any);
+    this.map.getView().fit(extent, this.map.getSize() as any);
 
     if (this.model.pages[index].features) {
       for (let i = 0; i < this.model.pages[index].features!.length; i++) {
@@ -149,6 +165,17 @@ export class TrainEstimateComponent implements OnInit {
     (this.map.getAllLayers()[1].getSource() as any).addFeature(feature);
   }
 
+  getZoom() {
+    const elelment = document.getElementById('map') as any;
+    const ar = elelment.clientHeight / elelment.clientWidth;
+    const img = this.model.pages[this.currentPageIndex].height / this.model.pages[this.currentPageIndex].width;
+    if (img > ar) {
+      return Math.LOG2E * Math.log(elelment.clientHeight / 256)
+    } else {
+      return Math.LOG2E * Math.log(elelment.clientWidth / 256)
+    }
+  }
+
   changeDrawMode() {
     this.drawEditMode = !this.drawEditMode;
     if (!this.drawEditMode) {
@@ -159,6 +186,7 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   openEstimateModal(edit: boolean, data: any, event: any) {
+    debugger;
     this.dialog.open(EstimateModalComponent, {
       data: { edit: edit, value: data },
       width: '400px',
@@ -288,5 +316,65 @@ export class TrainEstimateComponent implements OnInit {
     a.href = URL.createObjectURL(file);
     a.download = `${this.model.projectName}.json`;
     a.click();
+  }
+
+  processAI() {
+    this.processLoader.display = true;
+    this.processLoader.text = 'Changing exposure...';
+    this.processLoader.value = 0;
+
+    this.imageWorkerService.onImage = (type: string, image: any, progress: number) => {
+      this.processLoader.value = progress;
+      this.processLoader.text = type;
+      if (type != 'Drwaing edges...') {
+        this.map.getAllLayers()[0].setSource(new StaticImage({
+          url: image,
+          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+        }));
+        this.map.getAllLayers()[0].getSource()?.refresh();
+      } else {
+        this.map.getAllLayers()[0].setSource(new StaticImage({
+          url: this.model.pages[this.currentPageIndex].data,
+          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+        }));
+        this.map.getAllLayers()[0].getSource()?.refresh();
+        this.drawEdges(image);
+        this.processLoader.display = false;
+      }
+    };
+    this.imageWorkerService.init(this.model.pages[this.currentPageIndex].data);
+  }
+
+  drawEdges(rect: Array<any>) {
+    let id = Date.now();
+
+    for (let i = 0; i < rect.length; i++) {
+      const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+
+      if (((rect[i][2].x - rect[i][0].x) * (rect[i][2].y - rect[i][0].y)) < 1000) continue;
+
+      const coordinates = [[
+        [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],
+        [rect[i][2].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],
+
+        [rect[i][2].x, this.model.pages[this.currentPageIndex].height - rect[i][2].y],
+        [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][2].y],
+
+        [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],
+      ]];
+
+      this.model.pages[this.currentPageIndex].features.push({
+        color: `#${randomColor}`,
+        common: false,
+        id: id + i,
+        logic: "Simple",
+        name: `Item ${i}`,
+        service: "Simple CRUD",
+        unit: 1,
+        view: "Simple",
+        coordinates: []
+      });
+      this.addFeature(id + i, coordinates, `#${randomColor}`);
+    }
   }
 }

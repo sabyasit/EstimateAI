@@ -23,9 +23,23 @@
         </div>
         <div class="map-content">
             <div id="map">
-                <button mat-fab color="primary" (click)="changeDrawMode()">
-                    <mat-icon>{{!drawEditMode ? 'edit' : 'ac_unit'}}</mat-icon>
+                <button mat-fab class="draw" color="primary" (click)="changeDrawMode()">
+                    <mat-icon>{{!drawEditMode ? 'edit' : 'pan_tool'}}</mat-icon>
                 </button>
+                <button mat-fab class="magic" color="warn" (click)="processAI()">
+                    <mat-icon>flare</mat-icon>
+                </button>
+                <div class="process-loader" *ngIf="processLoader.display">
+                    <div class="process-loader-text">
+                        <label>{{processLoader.text}}</label>
+                        <span>{{processLoader.value}}%</span>
+                    </div>
+                    <mat-progress-bar
+                          color="accent"
+                          mode="determinate"
+                          [value]="processLoader.value">
+                      </mat-progress-bar>
+                </div>
             </div>
         </div>
         <div class="right-panel" *ngIf="calculatePageHrs() as item">

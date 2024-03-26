@@ -19,6 +19,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+
+import { ImageWorkerService } from './image-worker.service';
 
 @NgModule({
   declarations: [
@@ -42,9 +45,10 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatSelectModule,
     MatCheckboxModule,
     MatMenuModule,
-    MatTabsModule
+    MatTabsModule,
+    MatProgressBarModule
   ],
-  providers: [],
+  providers: [ImageWorkerService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
