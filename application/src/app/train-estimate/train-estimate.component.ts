@@ -37,7 +37,7 @@ export class TrainEstimateComponent implements OnInit {
   transform!: Transform;
   currentPageIndex: number = 0;
   drawEditMode: number = 1;
-  processLoader = { display: false, text: 'Changing exposure...', value: 0 }
+  processLoader = { display: false, text: 'Changing exposure...', value: 0, estimate: '0' }
 
   constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService) { }
 
@@ -372,25 +372,29 @@ export class TrainEstimateComponent implements OnInit {
     this.processLoader.display = true;
     this.processLoader.text = 'Changing exposure...';
     this.processLoader.value = 0;
+    this.processLoader.estimate = '';
 
-    this.imageWorkerService.onImage = (type: string, image: any, progress: number) => {
+    this.imageWorkerService.onImage = (type: string, image: any, progress: number, estimate: string) => {
       this.processLoader.value = progress;
       this.processLoader.text = type;
-      if (type != 'Drwaing edges...') {
-        this.map.getAllLayers()[0].setSource(new StaticImage({
-          url: image,
-          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-        }));
-        this.map.getAllLayers()[0].getSource()?.refresh();
+      this.processLoader.estimate = estimate;
+      
+      this.map.getAllLayers()[0].setSource(new StaticImage({
+        url: image,
+        imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+      }));
+      this.map.getAllLayers()[0].getSource()?.refresh();
+
+      if(progress !== 100) {
+        // this.map.getAllLayers()[0].setSource(new StaticImage({
+        //   url: image,
+        //   imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+        // }));
+        // this.map.getAllLayers()[0].getSource()?.refresh();
       } else {
-        this.map.getAllLayers()[0].setSource(new StaticImage({
-          url: this.model.pages[this.currentPageIndex].data,
-          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-        }));
-        this.map.getAllLayers()[0].getSource()?.refresh();
-        this.drawEdges(image);
-        sessionStorage.setItem('model', JSON.stringify(this.model));
-        this.processLoader.display = false;
+        if(estimate === 'DONE') {
+          this.processLoader.display = false;
+        }
       }
     };
     this.imageWorkerService.init(this.model.pages[this.currentPageIndex].data);
@@ -401,8 +405,6 @@ export class TrainEstimateComponent implements OnInit {
 
     for (let i = 0; i < rect.length; i++) {
       const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-
-      if (((rect[i][2].x - rect[i][0].x) * (rect[i][2].y - rect[i][0].y)) < 1000) continue;
 
       const coordinates = [[
         [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],

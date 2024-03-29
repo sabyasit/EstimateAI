@@ -1,28 +1,42 @@
 import { Injectable } from '@angular/core';
+import * as tf from '@tensorflow/tfjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageWorkerService {
-  public onImage!: (type: string, image: any, progress: number) => void;
+  public onImage!: (type: string, image: any, progress: number, estimate: string) => void;
 
   async init(image: any) {
     await this.sleep();
 
     const exposureImage = await this.changeExposure(image, 5);
-    this.onImage('Changing gray style...', exposureImage, 25);
+    this.onImage('Changing gray style...', exposureImage, 25, '');
     await this.sleep();
 
     const grayImage = await this.changeGrayStyle(exposureImage);
-    this.onImage('Changing blur...', grayImage, 50);
+    this.onImage('Changing blur...', grayImage, 50, '');
     await this.sleep();
 
     const blurImage = await this.changeBlur(grayImage);
-    this.onImage('Finding edges...', blurImage, 75);
+    this.onImage('Finding edges...', blurImage, 75, '');
     await this.sleep();
 
     const edgeRect = await this.getEdge(blurImage);
-    this.onImage('Drwaing edges...', edgeRect, 100);
+    this.onImage('Drwaing edges...', image, 90, '');
+    await this.sleep();
+
+    this.onImage('Complete', image, 100, '');
+
+    const model = await tf.loadLayersModel('assets/model/model.json');
+
+    for (let i = 0; i < edgeRect.length; i++) {
+      const cropImage = await this.getCorpImage(image, edgeRect[i]);
+      const predictions = await this.prediction(cropImage, model);
+      this.onImage('Complete', cropImage, 100, `${i + 1}/${edgeRect.length + 1}`);
+      await this.sleep();
+    }
+    this.onImage('Complete', image, 100, 'DONE');
   }
 
   changeGrayStyle = (image: any) => {
@@ -143,7 +157,7 @@ export class ImageWorkerService {
   }
 
   getEdge = (image: any) => {
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const canvas: HTMLCanvasElement = document.createElement('canvas');
@@ -163,7 +177,7 @@ export class ImageWorkerService {
 
         // Detect edges using Canny edge aw
         const edges = new cv.Mat();
-        cv.Canny(gray, edges, 50, 150, 3);
+        cv.Canny(src, edges, 50, 150, 3);
 
         // Find contours
         const contours = new cv.MatVector();
@@ -208,10 +222,43 @@ export class ImageWorkerService {
         contours.delete();
         hierarchy.delete();
 
-        resolve(rectangles);
+        resolve(rectangles.filter(rect => ((rect[2].x - rect[0].x) * (rect[2].y - rect[0].y)) > 1000));
       };
       img.src = image;
     })
+  }
+
+  getCorpImage = (image: any, rect: any) => {
+    return new Promise<any>((resolve: any, reject: any) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas: HTMLCanvasElement = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = rect[2].x - rect[0].x;
+        canvas.height = rect[2].y - rect[0].y;
+        ctx!.drawImage(img, rect[0].x, rect[0].y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/png'));
+      }
+      img.src = image;
+    });
+  }
+
+  prediction = (image: any, model: any) => {
+    return new Promise<any>((resolve: any, reject: any) => {
+      const img = new Image();
+      img.onload = async () => {
+        let tensor = tf.browser.fromPixels(img)
+          .resizeNearestNeighbor([96, 96]) // change the image size here
+          .toFloat()
+          .div(tf.scalar(255.0))
+          .expandDims();
+
+        let predictions = await model.predict(tensor).data();
+        console.log(predictions);
+        resolve(predictions);
+      }
+      img.src = image;
+    });
   }
 
   sleep = () => {

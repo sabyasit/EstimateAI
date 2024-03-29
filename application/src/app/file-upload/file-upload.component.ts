@@ -19,8 +19,8 @@ export class FileUploadComponent {
       unitTestPer: 40,
       personHours: 6,
       views: [{ item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }],
-      services: [{ item: 'Simple CRUD', hr: 8 }, { item: 'Medium CRUD', hr: 16 }, { item: 'Complex CRUD', hr: 24 }],
-      logics: [{ item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }]
+      services: [{ item: 'NA', hr: 0 }, { item: 'Simple CRUD', hr: 8 }, { item: 'Medium CRUD', hr: 16 }, { item: 'Complex CRUD', hr: 24 }],
+      logics: [{ item: 'NA', hr: 0 }, { item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }]
     }
   };
 

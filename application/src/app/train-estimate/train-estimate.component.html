@@ -24,7 +24,7 @@
         <div class="map-content">
             <div id="map">
                 <button mat-fab class="draw" color="primary" (click)="changeDrawMode()" matTooltipPosition="right"
-                matTooltip="{{drawEditMode === 1 ? 'Pan Mode' : (drawEditMode === 2 ? 'Add Mode' : 'Edit Mode')}}">
+                    matTooltip="{{drawEditMode === 1 ? 'Pan Mode' : (drawEditMode === 2 ? 'Add Mode' : 'Edit Mode')}}">
                     <mat-icon>{{drawEditMode === 1 ? 'pan_tool' : (drawEditMode === 2 ? 'add' : 'edit')}}</mat-icon>
                 </button>
                 <button mat-fab class="magic" color="warn" (click)="processAI()">
@@ -35,11 +35,14 @@
                         <label>{{processLoader.text}}</label>
                         <span>{{processLoader.value}}%</span>
                     </div>
-                    <mat-progress-bar
-                          color="accent"
-                          mode="determinate"
-                          [value]="processLoader.value">
-                      </mat-progress-bar>
+                    <mat-progress-bar color="accent" mode="determinate" [value]="processLoader.value">
+                    </mat-progress-bar>
+                    <div class="process-loader-text" *ngIf="processLoader.value === 100">
+                        <label>Estimation prediction...</label>
+                        <span>{{processLoader.estimate}}</span>
+                    </div>
+                    <mat-progress-bar color="accent" mode="indeterminate" *ngIf="processLoader.value === 100">
+                    </mat-progress-bar>
                 </div>
             </div>
         </div>

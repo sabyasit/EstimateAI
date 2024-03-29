@@ -19,6 +19,7 @@
     "@angular/platform-browser": "^15.2.0",
     "@angular/platform-browser-dynamic": "^15.2.0",
     "@angular/router": "^15.2.0",
+    "@tensorflow/tfjs": "^4.17.0",
     "ol": "^9.0.0",
     "ol-ext": "^4.0.17",
     "pdfjs-dist": "^3.11.174",
