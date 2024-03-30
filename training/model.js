@@ -10,7 +10,7 @@ const dropout_dense = 0.3
 
 const model = tf.sequential();
 model.add(tf.layers.conv2d({
-  inputShape: [96, 96, 3],
+  inputShape: [100, 100, 3],
   filters: first_filters,
   kernelSize: kernel_size,
   activation: 'relu',
@@ -63,7 +63,7 @@ model.add(tf.layers.flatten());
 
 model.add(tf.layers.dense({units: 256, activation: 'relu'}));
 model.add(tf.layers.dropout({rate: dropout_dense}));
-model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
+model.add(tf.layers.dense({units: 4, activation: 'softmax'}));
 
 const optimizer = tf.train.adam(0.0001);
 model.compile({

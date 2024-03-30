@@ -27,6 +27,8 @@ async function run(epochs, batchSize, modelSavePath) {
       `  Loss = ${evalOutput[0].dataSync()[0].toFixed(3)}; `+
       `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`);
 
+    console.log(evalOutput);
+
   if (modelSavePath != null) {
     await model.save(`file://${modelSavePath}`);
     console.log(`Saved model to path: ${modelSavePath}`);

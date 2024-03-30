@@ -247,11 +247,10 @@ export class ImageWorkerService {
     return new Promise<any>((resolve: any, reject: any) => {
       const img = new Image();
       img.onload = async () => {
-        let tensor = tf.browser.fromPixels(img)
-          .resizeNearestNeighbor([96, 96]) // change the image size here
-          .toFloat()
-          .div(tf.scalar(255.0))
-          .expandDims();
+        let tensor = tf.browser.fromPixels(img);
+        tensor = tensor.cast('float32').div(255);
+        tensor = tf.image.resizeBilinear(tensor, [100, 100]);
+        tensor = tensor.expandDims();
 
         let predictions = await model.predict(tensor).data();
         console.log(predictions);
