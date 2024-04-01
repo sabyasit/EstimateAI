@@ -1,42 +1,48 @@
 import { Injectable } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
+import { ProcessDetails } from './train.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageWorkerService {
-  public onImage!: (type: string, image: any, progress: number, estimate: string) => void;
+  public onImage!: (data: ProcessDetails) => void;
 
   async init(image: any) {
+    this.triggerOnImage(true, 'Changing exposure...', 0, false, '', '', undefined, image);
     await this.sleep();
 
     const exposureImage = await this.changeExposure(image, 5);
-    this.onImage('Changing gray style...', exposureImage, 25, '');
+    this.triggerOnImage(true, 'Changing gray style...', 25, false, '', '', undefined, exposureImage);
     await this.sleep();
 
     const grayImage = await this.changeGrayStyle(exposureImage);
-    this.onImage('Changing blur...', grayImage, 50, '');
+    this.triggerOnImage(true, 'Changing blur...', 50, false, '', '', undefined, grayImage);
     await this.sleep();
 
     const blurImage = await this.changeBlur(grayImage);
-    this.onImage('Finding edges...', blurImage, 75, '');
+    this.triggerOnImage(true, 'Finding edges...', 75, false, '', '', undefined, blurImage);
     await this.sleep();
 
     const edgeRect = await this.getEdge(blurImage);
-    this.onImage('Drwaing edges...', image, 90, '');
+    this.triggerOnImage(true, 'Drwaing edges..', 90, false, '', '', undefined, image);
     await this.sleep();
 
-    this.onImage('Complete', image, 100, '');
+    this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `0/${edgeRect.length + 1}`, undefined, image);
 
     const model = await tf.loadLayersModel('assets/model/model.json');
 
     for (let i = 0; i < edgeRect.length; i++) {
       const cropImage = await this.getCorpImage(image, edgeRect[i]);
       const predictions = await this.prediction(cropImage, model);
-      this.onImage('Complete', cropImage, 100, `${i + 1}/${edgeRect.length + 1}`);
+      this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `${i + 1}/${edgeRect.length + 1}`, {
+        rect: edgeRect[i],
+        predictions,
+        index: i
+      }, image);
       await this.sleep();
     }
-    this.onImage('Complete', image, 100, 'DONE');
+    this.triggerOnImage(false, 'Complete', 100, false, '', '', undefined, image);
   }
 
   changeGrayStyle = (image: any) => {
@@ -257,6 +263,26 @@ export class ImageWorkerService {
         resolve(predictions);
       }
       img.src = image;
+    });
+  }
+
+  triggerOnImage(display: boolean,
+    imageProcessText: string,
+    imageProcessValue: number,
+    displayEstimate: boolean,
+    estimateText: string,
+    estimateStatus: string,
+    estimateValue: any,
+    image: any) {
+    this.onImage({
+      display,
+      imageProcessText,
+      imageProcessValue,
+      displayEstimate,
+      estimateText,
+      estimateStatus,
+      estimateValue,
+      image
     });
   }
 

@@ -21,6 +21,12 @@ export class FileUploadComponent {
       views: [{ item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }],
       services: [{ item: 'NA', hr: 0 }, { item: 'Simple CRUD', hr: 8 }, { item: 'Medium CRUD', hr: 16 }, { item: 'Complex CRUD', hr: 24 }],
       logics: [{ item: 'NA', hr: 0 }, { item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }]
+    },
+    prediction: {
+      'chart': { view: 'Complex', logic: 'Medium', service: 'Simple CRUD' },
+      'form': { view: 'Medium', logic: 'Complex', service: 'Complex CRUD' },
+      'table': { view: 'Medium', logic: 'Complex', service: 'Medium CRUD' },
+      'menu': { view: 'Medium', logic: 'NA', service: 'NA' }
     }
   };
 

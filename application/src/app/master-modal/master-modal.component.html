@@ -31,6 +31,43 @@
                 </ng-container>
             </div>
         </mat-tab>
+        <mat-tab label="Elements">
+            <div class="master-content">
+                <mat-accordion>
+                    <ng-container *ngFor="let key of predictionKeys">
+                        <mat-expansion-panel>
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>{{key.toUpperCase()}}</mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <mat-form-field appearance="fill">
+                                <mat-label>View</mat-label>
+                                <mat-select [(ngModel)]="model.prediction[key].view">
+                                    <mat-option *ngFor="let view of model.master.views" [value]="view.item">
+                                        {{view.item}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field appearance="fill">
+                                <mat-label>Service Integration</mat-label>
+                                <mat-select [(ngModel)]="model.prediction[key].service">
+                                    <mat-option *ngFor="let service of model.master.services" [value]="service.item">
+                                        {{service.item}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field appearance="fill">
+                                <mat-label>Logic & Model</mat-label>
+                                <mat-select [(ngModel)]="model.prediction[key].logic">
+                                    <mat-option *ngFor="let logic of model.master.logics" [value]="logic.item">
+                                        {{logic.item}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </mat-expansion-panel>
+                    </ng-container>
+                </mat-accordion>
+            </div>
+        </mat-tab>
         <mat-tab label="miscellaneous">
             <div class="master-content">
                 <mat-form-field>

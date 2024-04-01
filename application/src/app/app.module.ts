@@ -21,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 import { ImageWorkerService } from './image-worker.service';
 
@@ -48,7 +49,8 @@ import { ImageWorkerService } from './image-worker.service';
     MatMenuModule,
     MatTabsModule,
     MatProgressBarModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatExpansionModule
   ],
   providers: [ImageWorkerService],
   bootstrap: [AppComponent]

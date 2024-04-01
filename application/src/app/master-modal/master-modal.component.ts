@@ -8,7 +8,9 @@ import { TrainModel } from '../train.model';
   styleUrls: ['./master-modal.component.scss']
 })
 export class MasterModalComponent {
-
+  predictionKeys: Array<string> = [];
   constructor(public dialogRef: MatDialogRef<MasterModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public model: any) { }
+    @Inject(MAT_DIALOG_DATA) public model: any) { 
+      this.predictionKeys = Object.keys(model.prediction);
+    }
 }

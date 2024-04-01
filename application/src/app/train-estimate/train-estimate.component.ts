@@ -19,7 +19,7 @@ import Projection from 'ol/proj/Projection';
 
 import Transform from 'ol-ext/interaction/Transform';
 
-import { TrainModel } from '../train.model';
+import { ProcessDetails, TrainModel } from '../train.model';
 import { EstimateModalComponent } from '../estimate-modal/estimate-modal.component';
 import { MasterModalComponent } from '../master-modal/master-modal.component';
 
@@ -37,7 +37,7 @@ export class TrainEstimateComponent implements OnInit {
   transform!: Transform;
   currentPageIndex: number = 0;
   drawEditMode: number = 1;
-  processLoader = { display: false, text: 'Changing exposure...', value: 0, estimate: '0' }
+  processLoader!: ProcessDetails;
 
   constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService) { }
 
@@ -369,65 +369,49 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   processAI() {
-    this.processLoader.display = true;
-    this.processLoader.text = 'Changing exposure...';
-    this.processLoader.value = 0;
-    this.processLoader.estimate = '';
-
-    this.imageWorkerService.onImage = (type: string, image: any, progress: number, estimate: string) => {
-      this.processLoader.value = progress;
-      this.processLoader.text = type;
-      this.processLoader.estimate = estimate;
-      
-      this.map.getAllLayers()[0].setSource(new StaticImage({
-        url: image,
-        imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-      }));
-      this.map.getAllLayers()[0].getSource()?.refresh();
-
-      if(progress !== 100) {
-        // this.map.getAllLayers()[0].setSource(new StaticImage({
-        //   url: image,
-        //   imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-        // }));
-        // this.map.getAllLayers()[0].getSource()?.refresh();
+    this.imageWorkerService.onImage = (data: ProcessDetails) => {
+      this.processLoader = data;
+      if (!this.processLoader.displayEstimate) {
+        this.map.getAllLayers()[0].setSource(new StaticImage({
+          url: this.processLoader.image,
+          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+        }));
+        this.map.getAllLayers()[0].getSource()?.refresh();
       } else {
-        if(estimate === 'DONE') {
-          this.processLoader.display = false;
+        if (this.processLoader.estimateValue) {
+          this.drawEdges(this.processLoader.estimateValue);
         }
       }
     };
     this.imageWorkerService.init(this.model.pages[this.currentPageIndex].data);
   }
 
-  drawEdges(rect: Array<any>) {
+  drawEdges(value: any) {
     let id = Date.now();
 
-    for (let i = 0; i < rect.length; i++) {
-      const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
 
-      const coordinates = [[
-        [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],
-        [rect[i][2].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],
+    const coordinates = [[
+      [value.rect[0].x, this.model.pages[this.currentPageIndex].height - value.rect[0].y],
+      [value.rect[2].x, this.model.pages[this.currentPageIndex].height - value.rect[0].y],
 
-        [rect[i][2].x, this.model.pages[this.currentPageIndex].height - rect[i][2].y],
-        [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][2].y],
+      [value.rect[2].x, this.model.pages[this.currentPageIndex].height - value.rect[2].y],
+      [value.rect[0].x, this.model.pages[this.currentPageIndex].height - value.rect[2].y],
 
-        [rect[i][0].x, this.model.pages[this.currentPageIndex].height - rect[i][0].y],
-      ]];
+      [value.rect[0].x, this.model.pages[this.currentPageIndex].height - value.rect[0].y],
+    ]];
 
-      this.model.pages[this.currentPageIndex].features.push({
-        color: `#${randomColor}`,
-        common: false,
-        id: id + i,
-        logic: "Simple",
-        name: `Item ${i}`,
-        service: "Simple CRUD",
-        unit: 1,
-        view: "Simple",
-        coordinates: coordinates
-      });
-      this.addFeature(id + i, coordinates, `#${randomColor}`);
-    }
+    this.model.pages[this.currentPageIndex].features.push({
+      color: `#${randomColor}`,
+      common: false,
+      id: id + value.index,
+      logic: "Simple",
+      name: `Item ${value.index}`,
+      service: "Simple CRUD",
+      unit: 1,
+      view: "Simple",
+      coordinates: coordinates
+    });
+    this.addFeature(id + value.index, coordinates, `#${randomColor}`);
   }
 }

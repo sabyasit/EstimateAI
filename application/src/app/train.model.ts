@@ -33,5 +33,23 @@ export interface TrainModel {
             logic: string,
             common: boolean
         }>
-    }>
+    }>,
+    prediction: {
+        [key: string] : {
+            view: string,
+            service: string,
+            logic: string
+        }
+    }
+}
+
+export interface ProcessDetails {
+    display: boolean,
+    imageProcessText: string,
+    imageProcessValue: number,
+    displayEstimate: boolean,
+    estimateText: string,
+    estimateStatus: string,
+    estimateValue: any,
+    image: any
 }
