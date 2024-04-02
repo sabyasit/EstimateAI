@@ -31,7 +31,8 @@ export interface TrainModel {
             view: string,
             service: string,
             logic: string,
-            common: boolean
+            common: boolean,
+            complete: boolean
         }>
     }>,
     prediction: {
@@ -45,11 +46,7 @@ export interface TrainModel {
 
 export interface ProcessDetails {
     display: boolean,
-    imageProcessText: string,
-    imageProcessValue: number,
-    displayEstimate: boolean,
-    estimateText: string,
-    estimateStatus: string,
-    estimateValue: any,
-    image: any
+    text: string,
+    value: any,
+    data: any
 }

@@ -48,10 +48,6 @@ export class EstimateModalComponent implements OnInit {
     this.dialogRef.close({ type: this.data.edit ? 'EDIT' : 'NEW', data: this.form.getRawValue() });
   }
 
-  onDelete() {
-    this.dialogRef.close({ type: 'DELETE' });
-  }
-
   onCancel() {
     this.dialogRef.close(!this.data.edit ? { type: 'REMOVE' } : '');
   }

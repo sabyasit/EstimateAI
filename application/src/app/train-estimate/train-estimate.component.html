@@ -23,28 +23,39 @@
         </div>
         <div class="map-content">
             <div id="map">
-                <button mat-fab class="draw" color="primary" (click)="changeDrawMode()" matTooltipPosition="right"
-                    matTooltip="{{drawEditMode === 1 ? 'Pan Mode' : (drawEditMode === 2 ? 'Add Mode' : 'Edit Mode')}}">
-                    <mat-icon>{{drawEditMode === 1 ? 'pan_tool' : (drawEditMode === 2 ? 'add' : 'edit')}}</mat-icon>
+                <button mat-fab class="draw_pan" [ngClass]="{'selected': drawEditMode === 1}" color="primary"
+                    (click)="changeDrawMode(1)" matTooltipPosition="right" matTooltip="Pan">
+                    <mat-icon>pan_tool</mat-icon>
                 </button>
-                <button mat-fab class="magic" color="warn" (click)="processAI()">
+                <button mat-fab class="draw_add" [ngClass]="{'selected': drawEditMode === 2}" color="primary"
+                    (click)="changeDrawMode(2)" matTooltipPosition="right" matTooltip="Add">
+                    <mat-icon>add</mat-icon>
+                </button>
+                <button mat-fab class="draw_edit" [ngClass]="{'selected': drawEditMode === 3}" color="primary"
+                    (click)="changeDrawMode(3)" matTooltipPosition="right" matTooltip="Edit">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-fab class="magic" color="warn" matTooltipPosition="right" matTooltip="Find sections" (click)="processImage()">
+                    <mat-icon>settings_overscan</mat-icon>
+                </button>
+                <button mat-fab class="predection" color="warn" matTooltipPosition="right" matTooltip="Predection" (click)="processPredection()">
                     <mat-icon>flare</mat-icon>
                 </button>
-                <div class="process-loader" *ngIf="processLoader?.display">
+                <div class="process-loader" *ngIf="processDetailsImage?.display">
                     <div class="process-loader-text">
-                        <label>{{processLoader.imageProcessText}}</label>
-                        <span>{{processLoader.imageProcessValue}}%</span>
+                        <label>{{processDetailsImage.text}}</label>
+                        <span>{{processDetailsImage.value}}%</span>
                     </div>
-                    <mat-progress-bar color="accent" mode="determinate" [value]="processLoader.imageProcessValue">
+                    <mat-progress-bar color="accent" mode="determinate" [value]="processDetailsImage.value">
                     </mat-progress-bar>
-                    <ng-container *ngIf="processLoader.displayEstimate">
-                        <div class="process-loader-text">
-                            <label>{{processLoader.estimateText}}</label>
-                            <span>{{processLoader.estimateStatus}}</span>
-                        </div>
-                        <mat-progress-bar color="accent" mode="indeterminate">
-                        </mat-progress-bar>
-                    </ng-container>
+                </div>
+                <div class="process-loader" *ngIf="processPredectionImage?.display">
+                    <div class="process-loader-text">
+                        <label>{{processPredectionImage.text}}</label>
+                        <span>{{processPredectionImage.value}}</span>
+                    </div>
+                    <mat-progress-bar color="accent" mode="indeterminate">
+                    </mat-progress-bar>
                 </div>
             </div>
         </div>
@@ -73,7 +84,7 @@
             </div>
             <div class="panel-sections">
                 <ng-container *ngFor="let feature of model.pages[this.currentPageIndex].features">
-                    <ng-container *ngIf="calculatePageHrs(feature.id) as item">
+                    <ng-container *ngIf="feature.complete && calculatePageHrs(feature.id) as item">
                         <div class="panel-sections-item" (mouseenter)="onFocusToggleFeature(true, feature.id)"
                             (mouseleave)="onFocusToggleFeature(false, feature.id)">
                             <mat-icon [style.color]="feature.color" style="cursor: pointer;"

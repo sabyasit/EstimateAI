@@ -46,6 +46,5 @@
 </div>
 <div mat-dialog-actions align="end">
     <button color="secondary" mat-raised-button (click)="onCancel()">Cancel</button>
-    <button *ngIf="data.edit" color="warn" mat-raised-button (click)="onDelete()">Delete</button>
     <button color="primary" mat-raised-button [disabled]="!form.valid" (click)="onSave()">Save</button>
 </div>

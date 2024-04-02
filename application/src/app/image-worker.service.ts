@@ -6,43 +6,71 @@ import { ProcessDetails } from './train.model';
   providedIn: 'root'
 })
 export class ImageWorkerService {
-  public onImage!: (data: ProcessDetails) => void;
+  public onPredection!: (data: ProcessDetails) => void;
 
-  async init(image: any) {
-    this.triggerOnImage(true, 'Changing exposure...', 0, false, '', '', undefined, image);
+  async initImage(image: any, onImage: (data: ProcessDetails) => void) {
+    onImage({ display: true, text: 'Changing exposure...', value: 0, data: image });
     await this.sleep();
 
     const exposureImage = await this.changeExposure(image, 5);
-    this.triggerOnImage(true, 'Changing gray style...', 25, false, '', '', undefined, exposureImage);
+    onImage({ display: true, text: 'Changing gray style...', value: 25, data: exposureImage });
     await this.sleep();
 
     const grayImage = await this.changeGrayStyle(exposureImage);
-    this.triggerOnImage(true, 'Changing blur...', 50, false, '', '', undefined, grayImage);
+    onImage({ display: true, text: 'Changing blur...', value: 50, data: grayImage });
     await this.sleep();
 
     const blurImage = await this.changeBlur(grayImage);
-    this.triggerOnImage(true, 'Finding edges...', 75, false, '', '', undefined, blurImage);
+    onImage({ display: true, text: 'Finding edges...', value: 75, data: blurImage });
     await this.sleep();
 
+    onImage({ display: true, text: 'Finding edges...', value: 90, data: image });
     const edgeRect = await this.getEdge(blurImage);
-    this.triggerOnImage(true, 'Drwaing edges..', 90, false, '', '', undefined, image);
     await this.sleep();
-
-    this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `0/${edgeRect.length + 1}`, undefined, image);
-
-    const model = await tf.loadLayersModel('assets/model/model.json');
 
     for (let i = 0; i < edgeRect.length; i++) {
-      const cropImage = await this.getCorpImage(image, edgeRect[i]);
-      const predictions = await this.prediction(cropImage, model);
-      this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `${i + 1}/${edgeRect.length + 1}`, {
-        rect: edgeRect[i],
-        predictions,
-        index: i
-      }, image);
+      onImage({
+        display: true, text: 'Drwaing edges..', value: 95, data: {
+          rect: edgeRect[i],
+          index: i
+        }
+      });
       await this.sleep();
     }
-    this.triggerOnImage(false, 'Complete', 100, false, '', '', undefined, image);
+
+    onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
+    await this.sleep();
+    onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
+
+    // this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `0/${edgeRect.length + 1}`, undefined, image);
+
+    // const model = await tf.loadLayersModel('assets/model/model.json');
+
+    // for (let i = 0; i < edgeRect.length; i++) {
+    //   const cropImage = await this.getCorpImage(image, edgeRect[i]);
+    //   const predictions = await this.prediction(cropImage, model);
+    //   this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `${i + 1}/${edgeRect.length + 1}`, {
+    //     rect: edgeRect[i],
+    //     predictions,
+    //     index: i,
+    //     image: cropImage
+    //   }, image);
+    //   await this.sleep();
+    // }
+    // this.triggerOnImage(false, 'Complete', 100, false, '', '', undefined, image);
+  }
+
+  async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
+    onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: image });
+    await this.sleep();
+
+    for (let i = 0; i < coordinates.length; i++) {
+      const cropImage = await this.getCorpImage(image, coordinates[i]);
+      onPredection({ display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`, data: cropImage });
+      await this.sleep();
+    }
+
+    onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: image });
   }
 
   changeGrayStyle = (image: any) => {
@@ -234,15 +262,15 @@ export class ImageWorkerService {
     })
   }
 
-  getCorpImage = (image: any, rect: any) => {
+  getCorpImage = (image: any, coordinates: any) => {
     return new Promise<any>((resolve: any, reject: any) => {
       const img = new Image();
       img.onload = () => {
         const canvas: HTMLCanvasElement = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = rect[2].x - rect[0].x;
-        canvas.height = rect[2].y - rect[0].y;
-        ctx!.drawImage(img, rect[0].x, rect[0].y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        canvas.width = coordinates[2];
+        canvas.height = coordinates[3];
+        ctx!.drawImage(img, coordinates[0], coordinates[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/png'));
       }
       img.src = image;
@@ -250,6 +278,7 @@ export class ImageWorkerService {
   }
 
   prediction = (image: any, model: any) => {
+    const prediction = ['chart', 'form', 'menu', 'table'];
     return new Promise<any>((resolve: any, reject: any) => {
       const img = new Image();
       img.onload = async () => {
@@ -259,30 +288,15 @@ export class ImageWorkerService {
         tensor = tensor.expandDims();
 
         let predictions = await model.predict(tensor).data();
-        console.log(predictions);
-        resolve(predictions);
+        //console.log(predictions);
+        const array = Array.from(predictions).map((value: any, index: number) => {
+          return { value, index: prediction[index] }
+        });
+        array.sort((a, b) => a.value > b.value ? -1 : 1);
+
+        resolve(array)
       }
       img.src = image;
-    });
-  }
-
-  triggerOnImage(display: boolean,
-    imageProcessText: string,
-    imageProcessValue: number,
-    displayEstimate: boolean,
-    estimateText: string,
-    estimateStatus: string,
-    estimateValue: any,
-    image: any) {
-    this.onImage({
-      display,
-      imageProcessText,
-      imageProcessValue,
-      displayEstimate,
-      estimateText,
-      estimateStatus,
-      estimateValue,
-      image
     });
   }
 

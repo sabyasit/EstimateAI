@@ -10,7 +10,7 @@ import Draw, { createBox } from 'ol/interaction/Draw.js';
 import { Modify, Snap } from 'ol/interaction.js';
 import { Vector as VectorSource } from 'ol/source.js';
 import { Polygon } from 'ol/geom'
-import { Feature } from 'ol';
+import { Feature, Overlay } from 'ol';
 import Style from 'ol/style/Style';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
@@ -37,7 +37,8 @@ export class TrainEstimateComponent implements OnInit {
   transform!: Transform;
   currentPageIndex: number = 0;
   drawEditMode: number = 1;
-  processLoader!: ProcessDetails;
+  processDetailsImage!: ProcessDetails;
+  processPredectionImage!: ProcessDetails;
 
   constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService) { }
 
@@ -103,10 +104,19 @@ export class TrainEstimateComponent implements OnInit {
       rotate: false
     })
 
+    this.transform.on("scaling", (event: any) => {
+      this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
+    });
+
+    this.transform.on("translating", (event: any) => {
+      this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
+    })
+
     this.transform.on("scaleend", (event: any) => {
       for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
         if (this.model.pages[this.currentPageIndex].features[i].id === event.feature.getId()) {
           this.model.pages[this.currentPageIndex].features[i].coordinates = event.feature.getGeometry().getCoordinates();
+          this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
         }
       }
       sessionStorage.setItem('model', JSON.stringify(this.model));
@@ -116,6 +126,7 @@ export class TrainEstimateComponent implements OnInit {
       for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
         if (this.model.pages[this.currentPageIndex].features[i].id === event.feature.getId()) {
           this.model.pages[this.currentPageIndex].features[i].coordinates = event.feature.getGeometry().getCoordinates();
+          this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
         }
       }
       sessionStorage.setItem('model', JSON.stringify(this.model));
@@ -134,36 +145,6 @@ export class TrainEstimateComponent implements OnInit {
     this.draw.on('drawend', (event: any) => {
       this.openEstimateModal(false, null, event);
     });
-
-    this.map.on('pointermove', (event: any) => {
-      if (this.drawEditMode !== 1) {
-        return;
-      }
-
-      this.map.forEachFeatureAtPixel(event.pixel, () => {
-        document.body.style.cursor = 'pointer';
-      }, { hitTolerance: 5 });
-
-      if (!this.map.hasFeatureAtPixel(event.pixel)) {
-        document.body.style.cursor = '';
-      }
-    })
-
-    this.map.on('singleclick', (event: any) => {
-      if (this.drawEditMode !== 1) {
-        return;
-      }
-
-      if (this.map.hasFeatureAtPixel(event.pixel)) {
-        const feature = this.map.getFeaturesAtPixel(event.pixel);
-        if (feature.length > 0) {
-          const value = this.model.pages[this.currentPageIndex].features.find(x => x.id === feature[0].getId());
-          if (value) {
-            this.openEstimateModal(true, value, null)
-          }
-        }
-      }
-    })
   }
 
   addFeature(id: number, coordinates: any, color: string) {
@@ -180,7 +161,7 @@ export class TrainEstimateComponent implements OnInit {
         width: 2
       }),
       text: new Text({
-        text: `${data.totalHr} Hrs | ${data.totalPd} Pd`,
+        text: data.totalHr === 0 ? '' : `${data.totalHr} Hrs | ${data.totalPd} Pd`,
         fill: new Fill({ color: '#000' }),
         stroke: new Stroke({ color: '#FFF', width: 3 }),
         font: 'bold 13px Tahoma'
@@ -188,6 +169,51 @@ export class TrainEstimateComponent implements OnInit {
     }));
     feature.setId(id);
     (this.map.getAllLayers()[1].getSource() as any).addFeature(feature);
+
+    this.addOverlay(feature);
+  }
+
+  addOverlay(feature: Feature) {
+    const div = document.createElement('div');
+    div.classList.add('overlay-settings');
+
+    const span = document.createElement('span')
+    span.innerHTML = 'settings';
+    span.classList.add('material-icons');
+    span.setAttribute('id', feature.getId()!.toString());
+    span.addEventListener('click', (event: any) => {
+
+    })
+    div.appendChild(span);
+
+    const ul = document.createElement('ul');
+    const li_edit = document.createElement('li');
+    li_edit.innerText = 'Edit';
+    li_edit.setAttribute('id', feature.getId()!.toString());
+    li_edit.addEventListener('click', (event: any) => {
+      const value = this.model.pages[this.currentPageIndex].features.find(x => x.id === +event.target.id);
+      this.openEstimateModal(true, value, null);
+    })
+    const li_delete = document.createElement('li');
+    li_delete.innerText = 'Delete';
+    li_delete.setAttribute('id', feature.getId()!.toString());
+    li_delete.addEventListener('click', (event: any) => {
+      this.deleteFeature(+event.target.id)
+    })
+    ul.appendChild(li_edit);
+    ul.appendChild(li_delete);
+    div.appendChild(ul);
+
+    const overlay = new Overlay({
+      element: div,
+      autoPan: true,
+      id: feature.getId(),
+      positioning: 'top-right',
+      position: (feature.getGeometry() as any).getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val),
+      offset: [60, 0]
+    })
+
+    this.map.addOverlay(overlay);
   }
 
   getZoom() {
@@ -201,19 +227,22 @@ export class TrainEstimateComponent implements OnInit {
     }
   }
 
-  changeDrawMode() {
+  changeDrawMode(mode: number) {
+    this.drawEditMode = mode;
+
     if (this.drawEditMode === 1) {
       this.map.removeInteraction(this.transform);
+      this.map.removeInteraction(this.draw);
+    }
+
+    if (this.drawEditMode === 2) {
+      this.map.removeInteraction(this.transform);
       this.map.addInteraction(this.draw);
-      this.drawEditMode = 2;
-    } else if (this.drawEditMode === 2) {
+    }
+
+    if (this.drawEditMode === 3) {
       this.map.addInteraction(this.transform);
       this.map.removeInteraction(this.draw);
-      this.drawEditMode = 3;
-    } else if (this.drawEditMode === 3) {
-      this.map.removeInteraction(this.transform);
-      this.map.removeInteraction(this.draw);
-      this.drawEditMode = 1;
     }
   }
 
@@ -235,6 +264,7 @@ export class TrainEstimateComponent implements OnInit {
       if (value.type === 'NEW') {
         (this.map.getAllLayers()[1].getSource() as any).removeFeature(event.feature);
         value.data.coordinates = event.feature.getGeometry().getCoordinates();
+        value.data.complete = false;
         value.data.id = Date.now();
         this.model.pages[this.currentPageIndex].features.push(value.data);
         sessionStorage.setItem('model', JSON.stringify(this.model));
@@ -251,22 +281,10 @@ export class TrainEstimateComponent implements OnInit {
             this.model.pages[this.currentPageIndex].features[i].logic = value.data.logic;
             this.model.pages[this.currentPageIndex].features[i].color = value.data.color;
             this.model.pages[this.currentPageIndex].features[i].common = value.data.common;
+            this.model.pages[this.currentPageIndex].features[i].complete = true;
           }
         }
         sessionStorage.setItem('model', JSON.stringify(this.model));
-      }
-
-      if (value.type === 'DELETE') {
-        const feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(data.id);
-        if (feature) {
-          (this.map.getAllLayers()[1].getSource() as VectorSource).removeFeature(feature);
-          (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
-
-          const index = this.model.pages[this.currentPageIndex].features.findIndex(x => x.id === data.id);
-          this.model.pages[this.currentPageIndex].features.splice(index, 1);
-
-          sessionStorage.setItem('model', JSON.stringify(this.model));
-        }
       }
     });
   }
@@ -275,13 +293,15 @@ export class TrainEstimateComponent implements OnInit {
     let devHr = 0;
     if (id) {
       const feature = this.model.pages[this.currentPageIndex].features.find(x => x.id === id)!;
-      const view = this.model.master.views.find(x => x.item === feature.view)!.hr;
-      const service = this.model.master.services.find(x => x.item === feature.service)!.hr;
-      const logic = this.model.master.logics.find(x => x.item === feature.logic)!.hr;
+      if (feature.complete) {
+        const view = this.model.master.views.find(x => x.item === feature.view)!.hr;
+        const service = this.model.master.services.find(x => x.item === feature.service)!.hr;
+        const logic = this.model.master.logics.find(x => x.item === feature.logic)!.hr;
 
-      devHr = (view + service + logic) * feature.unit;
+        devHr = (view + service + logic) * feature.unit;
+      }
     } else {
-      this.model.pages[this.currentPageIndex].features.forEach((item) => {
+      this.model.pages[this.currentPageIndex].features.filter(x => x.complete).forEach((item) => {
         const view = this.model.master.views.find(x => x.item === item.view)!.hr;
         const service = this.model.master.services.find(x => x.item === item.service)!.hr;
         const logic = this.model.master.logics.find(x => x.item === item.logic)!.hr;
@@ -301,7 +321,7 @@ export class TrainEstimateComponent implements OnInit {
   totalEstimate() {
     let devHr = 0;
     this.model.pages.forEach((page) => {
-      page.features.forEach((item) => {
+      page.features.filter(x => x.complete).forEach((item) => {
         const view = this.model.master.views.find(x => x.item === item.view)!.hr;
         const service = this.model.master.services.find(x => x.item === item.service)!.hr;
         const logic = this.model.master.logics.find(x => x.item === item.logic)!.hr;
@@ -331,6 +351,7 @@ export class TrainEstimateComponent implements OnInit {
     const feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(id);
     if (feature) {
       (this.map.getAllLayers()[1].getSource() as VectorSource).removeFeature(feature);
+      this.map.removeOverlay(this.map.getOverlayById(id)!);
       (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
 
       const index = this.model.pages[this.currentPageIndex].features.findIndex(x => x.id === id);
@@ -368,25 +389,24 @@ export class TrainEstimateComponent implements OnInit {
     a.click();
   }
 
-  processAI() {
-    this.imageWorkerService.onImage = (data: ProcessDetails) => {
-      this.processLoader = data;
-      if (!this.processLoader.displayEstimate) {
-        this.map.getAllLayers()[0].setSource(new StaticImage({
-          url: this.processLoader.image,
-          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-        }));
-        this.map.getAllLayers()[0].getSource()?.refresh();
-      } else {
-        if (this.processLoader.estimateValue) {
-          this.drawEdges(this.processLoader.estimateValue);
+  processImage() {
+    this.imageWorkerService.initImage(this.model.pages[this.currentPageIndex].data, (data: ProcessDetails) => {
+      this.processDetailsImage = data;
+      if (this.processDetailsImage.display) {
+        if (this.processDetailsImage.value != 95) {
+          this.map.getAllLayers()[0].setSource(new StaticImage({
+            url: this.processDetailsImage.data,
+            imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+          }));
+          this.map.getAllLayers()[0].getSource()?.refresh();
+        } else {
+          this.drawEdge(this.processDetailsImage.data)
         }
       }
-    };
-    this.imageWorkerService.init(this.model.pages[this.currentPageIndex].data);
+    })
   }
 
-  drawEdges(value: any) {
+  drawEdge(value: any) {
     let id = Date.now();
 
     const randomColor = Math.floor(Math.random() * 16777215).toString(16);
@@ -405,13 +425,29 @@ export class TrainEstimateComponent implements OnInit {
       color: `#${randomColor}`,
       common: false,
       id: id + value.index,
-      logic: "Simple",
+      logic: 'NA',
       name: `Item ${value.index}`,
-      service: "Simple CRUD",
+      service: 'NA',
       unit: 1,
-      view: "Simple",
-      coordinates: coordinates
+      view: 'Simple',
+      coordinates: coordinates,
+      complete: false
     });
     this.addFeature(id + value.index, coordinates, `#${randomColor}`);
+  }
+
+  processPredection() {
+    this.imageWorkerService.initPredection(this.model.pages[this.currentPageIndex].data,
+      this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
+        .map(x => (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent())
+        .map(x => [x[0], this.model.pages[this.currentPageIndex].height - x[3], x[2] - x[0], x[3] - x[1]]),
+      (data: ProcessDetails) => {
+        this.processPredectionImage = data;
+        this.map.getAllLayers()[0].setSource(new StaticImage({
+          url: this.processPredectionImage.data,
+          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+        }));
+        this.map.getAllLayers()[0].getSource()?.refresh();
+      })
   }
 }
