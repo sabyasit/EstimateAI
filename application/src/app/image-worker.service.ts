@@ -41,36 +41,22 @@ export class ImageWorkerService {
     onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
     await this.sleep();
     onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
-
-    // this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `0/${edgeRect.length + 1}`, undefined, image);
-
-    // const model = await tf.loadLayersModel('assets/model/model.json');
-
-    // for (let i = 0; i < edgeRect.length; i++) {
-    //   const cropImage = await this.getCorpImage(image, edgeRect[i]);
-    //   const predictions = await this.prediction(cropImage, model);
-    //   this.triggerOnImage(true, 'Complete', 100, true, 'Estimation prediction...', `${i + 1}/${edgeRect.length + 1}`, {
-    //     rect: edgeRect[i],
-    //     predictions,
-    //     index: i,
-    //     image: cropImage
-    //   }, image);
-    //   await this.sleep();
-    // }
-    // this.triggerOnImage(false, 'Complete', 100, false, '', '', undefined, image);
   }
 
   async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
-    onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: image });
+    const model = await tf.loadGraphModel('assets/model/model.json');
+
+    onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
     await this.sleep();
 
     for (let i = 0; i < coordinates.length; i++) {
-      const cropImage = await this.getCorpImage(image, coordinates[i]);
-      onPredection({ display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`, data: cropImage });
+      const cropImage = await this.getCorpImage(image, coordinates[i].value);
+      const predictions = await this.prediction(cropImage, model);
+      onPredection({ display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`, data: { predictions, id: coordinates[i].id } });
       await this.sleep();
     }
 
-    onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: image });
+    onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
   }
 
   changeGrayStyle = (image: any) => {
@@ -282,13 +268,17 @@ export class ImageWorkerService {
     return new Promise<any>((resolve: any, reject: any) => {
       const img = new Image();
       img.onload = async () => {
-        let tensor = tf.browser.fromPixels(img);
-        tensor = tensor.cast('float32').div(255);
-        tensor = tf.image.resizeBilinear(tensor, [100, 100]);
-        tensor = tensor.expandDims();
+        // let tensor = tf.browser.fromPixels(img);
+        // tensor = tensor.cast('float32').div(255);
+        // tensor = tf.image.resizeBilinear(tensor, [100, 100]);
+        // tensor = tensor.expandDims();
 
+        let tensor = tf.browser.fromPixels(img, 3)
+          .resizeNearestNeighbor([224, 224]) // change the image size
+          .expandDims()
+          .toFloat()
+          .reverse(-1);
         let predictions = await model.predict(tensor).data();
-        //console.log(predictions);
         const array = Array.from(predictions).map((value: any, index: number) => {
           return { value, index: prediction[index] }
         });

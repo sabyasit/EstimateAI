@@ -161,7 +161,7 @@ export class TrainEstimateComponent implements OnInit {
         width: 2
       }),
       text: new Text({
-        text: data.totalHr === 0 ? '' : `${data.totalHr} Hrs | ${data.totalPd} Pd`,
+        text: data.totalHr === 0 ? 'Not Estimated' : `${data.totalHr} Hrs | ${data.totalPd} Pd`,
         fill: new Fill({ color: '#000' }),
         stroke: new Stroke({ color: '#FFF', width: 3 }),
         font: 'bold 13px Tahoma'
@@ -259,12 +259,18 @@ export class TrainEstimateComponent implements OnInit {
 
       if (value.type === 'REMOVE') {
         (this.map.getAllLayers()[1].getSource() as any).removeFeature(event.feature);
+        value.data.coordinates = event.feature.getGeometry().getCoordinates();
+        value.data.complete = false;
+        value.data.id = Date.now();
+        this.model.pages[this.currentPageIndex].features.push(value.data);
+        sessionStorage.setItem('model', JSON.stringify(this.model));
+        this.addFeature(value.data.id, value.data.coordinates, value.data.color);
       }
 
       if (value.type === 'NEW') {
         (this.map.getAllLayers()[1].getSource() as any).removeFeature(event.feature);
         value.data.coordinates = event.feature.getGeometry().getCoordinates();
-        value.data.complete = false;
+        value.data.complete = true;
         value.data.id = Date.now();
         this.model.pages[this.currentPageIndex].features.push(value.data);
         sessionStorage.setItem('model', JSON.stringify(this.model));
@@ -282,6 +288,11 @@ export class TrainEstimateComponent implements OnInit {
             this.model.pages[this.currentPageIndex].features[i].color = value.data.color;
             this.model.pages[this.currentPageIndex].features[i].common = value.data.common;
             this.model.pages[this.currentPageIndex].features[i].complete = true;
+
+            const estimates = this.calculatePageHrs(data.id);
+            const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(data.id)!;
+            (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+            (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
           }
         }
         sessionStorage.setItem('model', JSON.stringify(this.model));
@@ -434,20 +445,32 @@ export class TrainEstimateComponent implements OnInit {
       complete: false
     });
     this.addFeature(id + value.index, coordinates, `#${randomColor}`);
+    sessionStorage.setItem('model', JSON.stringify(this.model));
   }
 
   processPredection() {
     this.imageWorkerService.initPredection(this.model.pages[this.currentPageIndex].data,
       this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
-        .map(x => (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent())
-        .map(x => [x[0], this.model.pages[this.currentPageIndex].height - x[3], x[2] - x[0], x[3] - x[1]]),
+        .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
+        .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
       (data: ProcessDetails) => {
         this.processPredectionImage = data;
-        this.map.getAllLayers()[0].setSource(new StaticImage({
-          url: this.processPredectionImage.data,
-          imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-        }));
-        this.map.getAllLayers()[0].getSource()?.refresh();
+        if (this.processPredectionImage.data) {
+          this.model.pages[this.currentPageIndex].features.forEach(item => {
+            if (item.id === this.processPredectionImage.data.id) {
+              item.view = this.model.prediction[this.processPredectionImage.data.predictions[0].index].view;
+              item.logic = this.model.prediction[this.processPredectionImage.data.predictions[0].index].logic;
+              item.service = this.model.prediction[this.processPredectionImage.data.predictions[0].index].service;
+              item.complete = true;
+
+              const estimates = this.calculatePageHrs(item.id);
+              const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
+              (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+              (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
+            }
+          })
+          sessionStorage.setItem('model', JSON.stringify(this.model));
+        }
       })
   }
 }

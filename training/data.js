@@ -24,7 +24,19 @@ function loadImages(dataDir) {
     imageTensor = imageTensor.expandDims();
     images.push(imageTensor);
     
-    labels.push(files[i].toLocaleLowerCase().split('_')[1].split('.')[0]);
+    const label = files[i].toLocaleLowerCase().split('_')[1].split('.')[0];
+    if(label === 'chart') {
+      labels.push(0);
+    }
+    if(label === 'form') {
+      labels.push(1);
+    }
+    if(label === 'menu') {
+      labels.push(2);
+    }
+    if(label === 'table') {
+      labels.push(3);
+    }
   }
   return [images, labels];
 }

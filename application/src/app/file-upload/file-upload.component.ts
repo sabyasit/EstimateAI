@@ -18,15 +18,15 @@ export class FileUploadComponent {
     master: {
       unitTestPer: 40,
       personHours: 6,
-      views: [{ item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }],
-      services: [{ item: 'NA', hr: 0 }, { item: 'Simple CRUD', hr: 8 }, { item: 'Medium CRUD', hr: 16 }, { item: 'Complex CRUD', hr: 24 }],
-      logics: [{ item: 'NA', hr: 0 }, { item: 'Simple', hr: 8 }, { item: 'Medium', hr: 16 }, { item: 'Complex', hr: 24 }]
+      views: [{ item: 'Very Simple', hr: 2 }, { item: 'Simple', hr: 4 }, { item: 'Medium', hr: 8 }, { item: 'Complex', hr: 16 }],
+      services: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }],
+      logics: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }]
     },
     prediction: {
-      'chart': { view: 'Complex', logic: 'Medium', service: 'Simple CRUD' },
-      'form': { view: 'Medium', logic: 'Complex', service: 'Complex CRUD' },
-      'table': { view: 'Medium', logic: 'Complex', service: 'Medium CRUD' },
-      'menu': { view: 'Medium', logic: 'NA', service: 'NA' }
+      'chart': { view: 'Complex', logic: 'Simple', service: 'Simple' },
+      'form': { view: 'Medium', logic: 'Complex', service: 'Medium' },
+      'table': { view: 'Medium', logic: 'Simple', service: 'Simple' },
+      'menu': { view: 'Simple', logic: 'NA', service: 'NA' }
     }
   };
 
