@@ -21,11 +21,15 @@ export class ImageWorkerService {
     await this.sleep();
 
     const blurImage = await this.changeBlur(grayImage);
-    onImage({ display: true, text: 'Finding edges...', value: 75, data: blurImage });
+    onImage({ display: true, text: 'Changing dilation...', value: 60, data: blurImage });
+    await this.sleep();
+
+    const dilatedImage = await this.changeDilation(blurImage);
+    onImage({ display: true, text: 'Finding edges...', value: 75, data: dilatedImage });
     await this.sleep();
 
     onImage({ display: true, text: 'Finding edges...', value: 90, data: image });
-    const edgeRect = await this.getEdge(blurImage);
+    const edgeRect = await this.getEdge(dilatedImage);
     await this.sleep();
 
     for (let i = 0; i < edgeRect.length; i++) {
@@ -94,55 +98,13 @@ export class ImageWorkerService {
         canvas.height = img.height;
         ctx!.drawImage(img, 0, 0, img.width, img.height);
 
-        const imageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        const width = imageData.width;
-        const height = imageData.height;
+        const cv = (window as any).cv;
 
-        // Precomputed Gaussian kernel (5x5)
-        const kernel = [
-          [1, 4, 6, 4, 1],
-          [4, 16, 24, 16, 4],
-          [6, 24, 36, 24, 6],
-          [4, 16, 24, 16, 4],
-          [1, 4, 6, 4, 1]
-        ];
+        const src = cv.imread(canvas);
 
-        const kernelSize = 5;
-        const kernelRadius = Math.floor(kernelSize / 2);
-
-        const newData = new Uint8ClampedArray(data.length);
-
-        // Apply convolution
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            let sumR = 0, sumG = 0, sumB = 0, sumA = 0, weightSum = 0;
-            for (let ky = 0; ky < kernelSize; ky++) {
-              for (let kx = 0; kx < kernelSize; kx++) {
-                const pixelX = x + kx - kernelRadius;
-                const pixelY = y + ky - kernelRadius;
-                if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
-                  const offset = (pixelY * width + pixelX) * 4;
-                  const weight = kernel[ky][kx];
-                  sumR += data[offset] * weight;
-                  sumG += data[offset + 1] * weight;
-                  sumB += data[offset + 2] * weight;
-                  sumA += data[offset + 3] * weight;
-                  weightSum += weight;
-                }
-              }
-            }
-            const offset = (y * width + x) * 4;
-            newData[offset] = sumR / weightSum;
-            newData[offset + 1] = sumG / weightSum;
-            newData[offset + 2] = sumB / weightSum;
-            newData[offset + 3] = sumA / weightSum;
-          }
-        }
-
-        // Put blurred image data back to canvas
-        const newImageData = new ImageData(newData, width, height);
-        ctx!.putImageData(newImageData, 0, 0);
+        let dst = new cv.Mat();
+        cv.GaussianBlur(src, dst, new cv.Size(3, 3), 0, 0, cv.BORDER_DEFAULT);
+        cv.imshow(canvas, dst);
 
         resolve(canvas.toDataURL('image/png'))
       };
@@ -172,6 +134,38 @@ export class ImageWorkerService {
         ctx!.putImageData(imageData, 0, 0);
         resolve(canvas.toDataURL('image/png'));
       };
+      img.src = image;
+    })
+  }
+
+  changeDilation = (image: any) => {
+    return new Promise<any>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas: HTMLCanvasElement = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx!.drawImage(img, 0, 0, img.width, img.height);
+
+        const cv = (window as any).cv;
+
+        const src = cv.imread(canvas);
+
+        const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5));
+
+        // Perform dilation
+        const dilated = new cv.Mat();
+        cv.dilate(src, dilated, kernel);
+
+        cv.imshow(canvas, dilated);
+
+        src.delete();
+        dilated.delete();
+        kernel.delete();
+
+        resolve(canvas.toDataURL('image/png'));
+      }
       img.src = image;
     })
   }
@@ -216,13 +210,21 @@ export class ImageWorkerService {
             for (let j = 0; j < approx.size().height; j++) {
               points.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] });
             }
-            rectangles.push(points);
+            const sortX = points.map(x => x.x).sort((a, b) => a - b);
+            const sortY = points.map(x => x.y).sort((a, b) => a - b);
+            rectangles.push({
+              x1: sortX[0],
+              y1: sortY[0],
+              x2: sortX[3],
+              y2: sortY[3],
+              points: points
+            });
           }
           approx.delete();
           contour.delete();
         }
 
-        // Draw rectangles
+        //Draw rectangles
         // for (let i = 0; i < rectangles.length; i++) {
         //   ctx!.beginPath();
         //   ctx!.moveTo(rectangles[i][0].x, rectangles[i][0].y);
@@ -242,7 +244,7 @@ export class ImageWorkerService {
         contours.delete();
         hierarchy.delete();
 
-        resolve(rectangles.filter(rect => ((rect[2].x - rect[0].x) * (rect[2].y - rect[0].y)) > 1000));
+        resolve(rectangles.filter(rect => ((rect.x2 - rect.x1) * (rect.y2 - rect.y1)) > 1000));
       };
       img.src = image;
     })
@@ -294,7 +296,7 @@ export class ImageWorkerService {
     return new Promise((resolve: any, reject: any) => {
       setTimeout(() => {
         resolve();
-      }, 1000);
+      }, 300);
     })
   }
 }

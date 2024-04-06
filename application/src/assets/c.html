@@ -33,7 +33,8 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
       ctx.drawImage(img, 0, 0, img.width, img.height);
 
       // Detect edges and rectangles
-      detectEdgesAndRectangles(canvas);
+      //detectEdgesAndRectangles(canvas);
+      detectEdgesAndRectangles(aa(canvas))
     };
     img.src = reader.result;
   };
@@ -45,12 +46,12 @@ async function detectEdgesAndRectangles(canvas) {
   const src = cv.imread(canvas);
 
   // Convert image to grayscale
-  const gray = new cv.Mat();
-  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  //const gray = new cv.Mat();
+  //cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
 
   // Detect edges using Canny edge detector
   const edges = new cv.Mat();
-  cv.Canny(gray, edges, 50, 150, 3);
+  cv.Canny(src, edges, 50, 150, 3);
 
   // Find contours
   const contours = new cv.MatVector();
@@ -94,6 +95,32 @@ async function detectEdgesAndRectangles(canvas) {
   edges.delete();
   contours.delete();
   hierarchy.delete();
+}
+
+function aa(imgElement) {
+  const src = cv.imread(imgElement);
+
+            // Create a structuring element for dilation
+            const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+
+            // Perform dilation
+            const dilated = new cv.Mat();
+            cv.dilate(src, dilated, kernel);
+
+            // Display the original image
+            // const originalCanvas = document.getElementById('originalCanvas');
+            // cv.imshow(originalCanvas, src);
+
+            // Display the dilated image
+            const dilatedCanvas = document.getElementById('canvas');
+            cv.imshow(dilatedCanvas, dilated);
+
+            // Clean up
+            src.delete();
+            dilated.delete();
+            kernel.delete();
+
+            return dilatedCanvas;
 }
 </script>
 <script src="https://docs.opencv.org/4.5.5/opencv.js" onload="onOpenCvReady()"></script>

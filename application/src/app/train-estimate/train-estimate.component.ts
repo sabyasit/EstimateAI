@@ -423,13 +423,13 @@ export class TrainEstimateComponent implements OnInit {
     const randomColor = Math.floor(Math.random() * 16777215).toString(16);
 
     const coordinates = [[
-      [value.rect[0].x, this.model.pages[this.currentPageIndex].height - value.rect[0].y],
-      [value.rect[2].x, this.model.pages[this.currentPageIndex].height - value.rect[0].y],
+      [value.rect.x1, this.model.pages[this.currentPageIndex].height - value.rect.y1],
+      [value.rect.x2, this.model.pages[this.currentPageIndex].height - value.rect.y1],
 
-      [value.rect[2].x, this.model.pages[this.currentPageIndex].height - value.rect[2].y],
-      [value.rect[0].x, this.model.pages[this.currentPageIndex].height - value.rect[2].y],
+      [value.rect.x2, this.model.pages[this.currentPageIndex].height - value.rect.y2],
+      [value.rect.x1, this.model.pages[this.currentPageIndex].height - value.rect.y2],
 
-      [value.rect[0].x, this.model.pages[this.currentPageIndex].height - value.rect[0].y],
+      [value.rect.x1, this.model.pages[this.currentPageIndex].height - value.rect.y1],
     ]];
 
     this.model.pages[this.currentPageIndex].features.push({

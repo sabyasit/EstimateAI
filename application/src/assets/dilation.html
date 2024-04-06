@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Dilation with OpenCV.js</title>
+    <script src="https://docs.opencv.org/4.5.4/opencv.js" ></script>
+</head>
+<body>
+    <h1>Image Dilation with OpenCV.js</h1>
+    <div>
+        <h2>Original Image</h2>
+        <canvas id="originalCanvas"></canvas>
+    </div>
+    <div>
+        <h2>Dilated Image</h2>
+        <canvas id="dilatedCanvas"></canvas>
+    </div>
+
+    <script>
+        // Load the image
+        const imgElement = document.createElement('img');
+        imgElement.src = '1.png'; // Replace 'example.jpg' with your image path
+        imgElement.onload = () => {
+            const src = cv.imread(imgElement);
+
+            // Create a structuring element for dilation
+            const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5));
+
+            // Perform dilation
+            const dilated = new cv.Mat();
+            cv.dilate(src, dilated, kernel);
+
+            // Display the original image
+            const originalCanvas = document.getElementById('originalCanvas');
+            cv.imshow(originalCanvas, src);
+
+            // Display the dilated image
+            const dilatedCanvas = document.getElementById('dilatedCanvas');
+            cv.imshow(dilatedCanvas, dilated);
+
+            // Clean up
+            src.delete();
+            dilated.delete();
+            kernel.delete();
+        };
+    </script>
+</body>
+</html>
