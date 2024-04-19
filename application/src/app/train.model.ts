@@ -32,7 +32,9 @@ export interface TrainModel {
             service: string,
             logic: string,
             common: boolean,
-            complete: boolean
+            complete: boolean,
+            image?: any,
+            data?: string
         }>
     }>,
     prediction: {

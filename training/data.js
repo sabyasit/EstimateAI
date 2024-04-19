@@ -18,9 +18,10 @@ function loadImages(dataDir) {
     var filePath = path.join(dataDir, files[i]);
     debugger;
     var buffer = fs.readFileSync(filePath);
-    var imageTensor = tf.node.decodeImage(buffer, 3)
+    var imageTensor = tf.node.decodeImage(buffer, 3);
+    imageTensor = tf.image.rgbToGrayscale(imageTensor);
     imageTensor = imageTensor.cast('float32').div(255);
-    imageTensor = tf.image.resizeBilinear(imageTensor, size = [100, 100]);
+    imageTensor = tf.image.resizeBilinear(imageTensor, size = [256, 256]);
     imageTensor = imageTensor.expandDims();
     images.push(imageTensor);
     
@@ -58,7 +59,7 @@ class TuberculosisDataset {
 
   getTrainData() {
     return {
-      images: tf.concat(this.trainData[0]),
+      images: tf.concat(this.trainData[0], 0),
       labels: tf.oneHot(tf.tensor1d(this.trainData[1], 'int32'), 4).toFloat()
     }
   }

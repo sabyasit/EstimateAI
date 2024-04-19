@@ -461,7 +461,10 @@ export class TrainEstimateComponent implements OnInit {
               item.view = this.model.prediction[this.processPredectionImage.data.predictions[0].index].view;
               item.logic = this.model.prediction[this.processPredectionImage.data.predictions[0].index].logic;
               item.service = this.model.prediction[this.processPredectionImage.data.predictions[0].index].service;
+              item.image = this.processPredectionImage.data.image;
+              item.name = this.processPredectionImage.data.predictions[0].index;
               item.complete = true;
+              item.data = JSON.stringify(this.processPredectionImage.data.predictions);
 
               const estimates = this.calculatePageHrs(item.id);
               const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
@@ -469,7 +472,7 @@ export class TrainEstimateComponent implements OnInit {
               (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
             }
           })
-          sessionStorage.setItem('model', JSON.stringify(this.model));
+          //sessionStorage.setItem('model', JSON.stringify(this.model));
         }
       })
   }
