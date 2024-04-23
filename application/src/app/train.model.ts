@@ -33,7 +33,6 @@ export interface TrainModel {
             logic: string,
             common: boolean,
             complete: boolean,
-            image?: any,
             data?: string
         }>
     }>,

@@ -24,6 +24,7 @@ import { EstimateModalComponent } from '../estimate-modal/estimate-modal.compone
 import { MasterModalComponent } from '../master-modal/master-modal.component';
 
 import { ImageWorkerService } from '../image-worker.service';
+import { PredictionService } from '../prediction.service';
 
 @Component({
   selector: 'app-train-estimate',
@@ -40,7 +41,9 @@ export class TrainEstimateComponent implements OnInit {
   processDetailsImage!: ProcessDetails;
   processPredectionImage!: ProcessDetails;
 
-  constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService) { }
+  constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService, 
+    private predictionService: PredictionService
+  ) { }
 
   ngOnInit(): void {
     this.model = JSON.parse(sessionStorage.getItem('model')!);
@@ -449,7 +452,7 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   processPredection() {
-    this.imageWorkerService.initPredection(this.model.pages[this.currentPageIndex].data,
+    this.predictionService.initPredection(this.model.pages[this.currentPageIndex].data,
       this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
         .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
         .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
@@ -461,7 +464,6 @@ export class TrainEstimateComponent implements OnInit {
               item.view = this.model.prediction[this.processPredectionImage.data.predictions[0].index].view;
               item.logic = this.model.prediction[this.processPredectionImage.data.predictions[0].index].logic;
               item.service = this.model.prediction[this.processPredectionImage.data.predictions[0].index].service;
-              item.image = this.processPredectionImage.data.image;
               item.name = this.processPredectionImage.data.predictions[0].index;
               item.complete = true;
               item.data = JSON.stringify(this.processPredectionImage.data.predictions);
@@ -472,7 +474,7 @@ export class TrainEstimateComponent implements OnInit {
               (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
             }
           })
-          //sessionStorage.setItem('model', JSON.stringify(this.model));
+          sessionStorage.setItem('model', JSON.stringify(this.model));
         }
       })
   }
