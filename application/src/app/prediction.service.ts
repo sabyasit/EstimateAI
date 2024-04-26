@@ -12,7 +12,7 @@ declare const Buffer: any;
 })
 
 export class PredictionService {
-  PREDICTION_CLASSES = ['chart', 'form', 'table'];
+  PREDICTION_CLASSES = ['chart', 'form', 'menu', 'search', 'table'];
 
   async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
     //const model = await tf.loadGraphModel('assets/model/model.json');

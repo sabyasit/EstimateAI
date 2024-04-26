@@ -25,6 +25,7 @@ export class FileUploadComponent {
     prediction: {
       'chart': { view: 'Complex', logic: 'Simple', service: 'Simple' },
       'form': { view: 'Medium', logic: 'Complex', service: 'Medium' },
+      'search': { view: 'Very Simple', logic: 'Simple', service: 'Medium' },
       'table': { view: 'Medium', logic: 'Simple', service: 'Simple' },
       'menu': { view: 'Simple', logic: 'NA', service: 'NA' }
     }
