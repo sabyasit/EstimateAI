@@ -323,13 +323,11 @@ export class TrainEstimateComponent implements OnInit {
         devHr += (view + service + logic) * item.unit;
       });
     }
-    const devPd = Math.ceil(devHr / this.model.master.personHours);
     const unitTestHr = Math.ceil((devHr * this.model.master.unitTestPer) / 100);
-    const unitTestPd = Math.ceil(unitTestHr / this.model.master.personHours);
     const totalHr = devHr + unitTestHr;
-    const totalPd = devPd + unitTestPd;
+    const totalPd = Math.ceil(totalHr / this.model.master.personHours);
 
-    return { devHr, devPd, unitTestHr, unitTestPd, totalHr, totalPd }
+    return { devHr, unitTestHr, totalHr, totalPd }
   }
 
   totalEstimate() {
@@ -344,13 +342,11 @@ export class TrainEstimateComponent implements OnInit {
       });
     });
 
-    const devPd = Math.ceil(devHr / this.model.master.personHours);
     const unitTestHr = Math.ceil((devHr * this.model.master.unitTestPer) / 100);
-    const unitTestPd = Math.ceil(unitTestHr / this.model.master.personHours);
     const totalHr = devHr + unitTestHr;
-    const totalPd = devPd + unitTestPd;
+    const totalPd = Math.ceil(totalHr / this.model.master.personHours);
 
-    return { devHr, devPd, unitTestHr, unitTestPd, totalHr, totalPd }
+    return { devHr, unitTestHr, totalHr, totalPd }
   }
 
   onFocusToggleFeature(focus: boolean, id: number) {
@@ -459,12 +455,13 @@ export class TrainEstimateComponent implements OnInit {
       (data: ProcessDetails) => {
         this.processPredectionImage = data;
         if (this.processPredectionImage.data) {
-          this.model.pages[this.currentPageIndex].features.forEach(item => {
+          this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
             if (item.id === this.processPredectionImage.data.id) {
               item.view = this.model.prediction[this.processPredectionImage.data.predictions[0].index].view;
               item.logic = this.model.prediction[this.processPredectionImage.data.predictions[0].index].logic;
               item.service = this.model.prediction[this.processPredectionImage.data.predictions[0].index].service;
               item.name = this.processPredectionImage.data.predictions[0].index;
+              //item.name = `Item${i}`;
               item.complete = true;
               item.data = JSON.stringify(this.processPredectionImage.data.predictions);
 
