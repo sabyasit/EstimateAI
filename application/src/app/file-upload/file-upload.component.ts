@@ -18,7 +18,7 @@ export class FileUploadComponent {
     master: {
       unitTestPer: 40,
       personHours: 6,
-      views: [{ item: 'Very Simple', hr: 2 }, { item: 'Simple', hr: 4 }, { item: 'Medium', hr: 8 }, { item: 'Complex', hr: 16 }],
+      views: [{ item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }],
       services: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }],
       logics: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }]
     },

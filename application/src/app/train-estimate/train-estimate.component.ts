@@ -25,6 +25,7 @@ import { MasterModalComponent } from '../master-modal/master-modal.component';
 
 import { ImageWorkerService } from '../image-worker.service';
 import { PredictionService } from '../prediction.service';
+import { ExportService } from '../export.service';
 
 @Component({
   selector: 'app-train-estimate',
@@ -41,8 +42,9 @@ export class TrainEstimateComponent implements OnInit {
   processDetailsImage!: ProcessDetails;
   processPredectionImage!: ProcessDetails;
 
-  constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService, 
-    private predictionService: PredictionService
+  constructor(public dialog: MatDialog, private imageWorkerService: ImageWorkerService,
+    private predictionService: PredictionService,
+    private exportService: ExportService
   ) { }
 
   ngOnInit(): void {
@@ -391,12 +393,12 @@ export class TrainEstimateComponent implements OnInit {
     })
   }
 
-  onDownload() {
-    const a = document.createElement('a');
-    const file = new Blob([sessionStorage.getItem('model')!], { type: 'text/plain' });
-    a.href = URL.createObjectURL(file);
-    a.download = `${this.model.projectName}.json`;
-    a.click();
+  onDownloadProject() {
+    this.exportService.exportJson(this.model);
+  }
+
+  onDownloadExcel() {
+    this.exportService.exportExcel(this.model);
   }
 
   processImage() {
@@ -460,8 +462,8 @@ export class TrainEstimateComponent implements OnInit {
               item.view = this.model.prediction[this.processPredectionImage.data.predictions[0].index].view;
               item.logic = this.model.prediction[this.processPredectionImage.data.predictions[0].index].logic;
               item.service = this.model.prediction[this.processPredectionImage.data.predictions[0].index].service;
-              item.name = this.processPredectionImage.data.predictions[0].index;
-              //item.name = `Item${i}`;
+              //item.name = this.processPredectionImage.data.predictions[0].index;
+              item.name = `Section ${i}`;
               item.complete = true;
               item.data = JSON.stringify(this.processPredectionImage.data.predictions);
 
