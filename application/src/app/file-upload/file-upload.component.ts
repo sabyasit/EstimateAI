@@ -23,10 +23,10 @@ export class FileUploadComponent {
       logics: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }]
     },
     prediction: {
-      'card': { view: 'Medium', logic: 'Simple', service: 'Simple' },
+      'card': { view: 'Medium', logic: 'Very Simple', service: 'Very Simple' },
       'chart': { view: 'Complex', logic: 'Simple', service: 'Simple' },
       'form': { view: 'Medium', logic: 'Complex', service: 'Medium' },
-      'search': { view: 'Very Simple', logic: 'Simple', service: 'Medium' },
+      'search': { view: 'Very Simple', logic: 'Very Simple', service: 'Medium' },
       'table': { view: 'Medium', logic: 'Simple', service: 'Simple' },
       'menu': { view: 'Simple', logic: 'NA', service: 'NA' }
     }
@@ -61,7 +61,7 @@ export class FileUploadComponent {
             data: canvas.toDataURL('image/png'),
             width: canvas.width,
             height: canvas.height,
-            name: `Page-${i}`,
+            name: `Page-${i + 1}`,
             features: [],
             complete: false
           })
