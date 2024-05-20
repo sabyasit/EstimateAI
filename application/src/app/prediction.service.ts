@@ -12,7 +12,7 @@ declare const Buffer: any;
 })
 
 export class PredictionService {
-  PREDICTION_CLASSES = ['chart', 'form', 'menu', 'search', 'table'];
+  PREDICTION_CLASSES = ['card', 'chart', 'form', 'menu', 'search', 'table'];
 
   async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
     //const model = await tf.loadGraphModel('assets/model/model.json');
@@ -91,7 +91,6 @@ export class PredictionService {
       feeds[session.inputNames[0]] = inputTensor;
 
       const results: any = await session.run(feeds);
-      debugger;
 
       const predictions = Array.from(results[session.outputNames[0]].data).map((value: any, index: number) => {
         return { value, index: this.PREDICTION_CLASSES[index] }

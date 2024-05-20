@@ -23,6 +23,7 @@ export class FileUploadComponent {
       logics: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }]
     },
     prediction: {
+      'card': { view: 'Medium', logic: 'Simple', service: 'Simple' },
       'chart': { view: 'Complex', logic: 'Simple', service: 'Simple' },
       'form': { view: 'Medium', logic: 'Complex', service: 'Medium' },
       'search': { view: 'Very Simple', logic: 'Simple', service: 'Medium' },
