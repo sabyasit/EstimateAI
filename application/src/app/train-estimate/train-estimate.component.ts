@@ -459,13 +459,29 @@ export class TrainEstimateComponent implements OnInit {
         if (this.processPredectionImage.data) {
           this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
             if (item.id === this.processPredectionImage.data.id) {
-              item.view = this.model.prediction[this.processPredectionImage.data.predictions[0].index].view;
-              item.logic = this.model.prediction[this.processPredectionImage.data.predictions[0].index].logic;
-              item.service = this.model.prediction[this.processPredectionImage.data.predictions[0].index].service;
-              //item.name = this.processPredectionImage.data.predictions[0].index;
-              item.name = `Section ${i}`;
-              item.complete = true;
-              item.data = JSON.stringify(this.processPredectionImage.data.predictions);
+              const weightagePredictions = this.processPredectionImage.data.predictions.filter((x: any) => x.value > .49)
+                .map((x: any) => {
+                  return {
+                    index: x.index,
+                    value: x.value,
+                    weightage: this.model.prediction[x.index].weightage
+                  }
+                })
+                .sort((a: any, b: any) => a.weightage > b.weightage ? -1 : 1);
+
+              for (let weightageIndex = 0; weightageIndex < weightagePredictions.length; weightageIndex++) {
+                if(weightageIndex === 0) {
+                  item.view = this.model.prediction[weightagePredictions[weightageIndex].index].view;
+                  item.logic = this.model.prediction[weightagePredictions[weightageIndex].index].logic;
+                  item.service = this.model.prediction[weightagePredictions[weightageIndex].index].service;
+                  item.unit = 1;
+                  item.name = `Section ${i}`;
+                  item.complete = true;
+                  item.data = JSON.stringify(this.processPredectionImage.data.predictions);
+                } else {
+                  item.unit += weightagePredictions[weightageIndex].weightage;
+                }
+              }
 
               const estimates = this.calculatePageHrs(item.id);
               const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
@@ -473,7 +489,7 @@ export class TrainEstimateComponent implements OnInit {
               (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
             }
           })
-          sessionStorage.setItem('model', JSON.stringify(this.model));
+          //sessionStorage.setItem('model', JSON.stringify(this.model));
         }
       })
   }

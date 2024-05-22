@@ -23,12 +23,12 @@ export class FileUploadComponent {
       logics: [{ item: 'NA', hr: 0 }, { item: 'Very Simple', hr: 1 }, { item: 'Simple', hr: 2 }, { item: 'Medium', hr: 4 }, { item: 'Complex', hr: 8 }]
     },
     prediction: {
-      'card': { view: 'Medium', logic: 'Very Simple', service: 'Very Simple' },
-      'chart': { view: 'Complex', logic: 'Simple', service: 'Simple' },
-      'form': { view: 'Medium', logic: 'Complex', service: 'Medium' },
-      'search': { view: 'Very Simple', logic: 'Very Simple', service: 'Medium' },
-      'table': { view: 'Medium', logic: 'Simple', service: 'Simple' },
-      'menu': { view: 'Simple', logic: 'NA', service: 'NA' }
+      'card': { view: 'Simple', logic: 'Very Simple', service: 'Very Simple', weightage: .15 },
+      'chart': { view: 'Complex', logic: 'Simple', service: 'Simple', weightage: 1 },
+      'form': { view: 'Medium', logic: 'Complex', service: 'Medium', weightage: 1 },
+      'search': { view: 'Very Simple', logic: 'Very Simple', service: 'Medium', weightage: .25 },
+      'table': { view: 'Medium', logic: 'Simple', service: 'Simple', weightage: .5 },
+      'menu': { view: 'Simple', logic: 'NA', service: 'NA', weightage: .25 }
     }
   };
 

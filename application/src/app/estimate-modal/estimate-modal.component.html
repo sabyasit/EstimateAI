@@ -7,11 +7,7 @@
         </mat-form-field>
         <mat-form-field appearance="fill">
             <mat-label>Unit</mat-label>
-            <mat-select formControlName="unit">
-                <mat-option *ngFor="let item of units" [value]="item">
-                    {{item}}
-                </mat-option>
-            </mat-select>
+            <input type="number" matInput formControlName="unit">
         </mat-form-field>
         <mat-form-field appearance="fill">
             <mat-label>View</mat-label>

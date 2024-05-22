@@ -40,7 +40,8 @@ export interface TrainModel {
         [key: string] : {
             view: string,
             service: string,
-            logic: string
+            logic: string,
+            weightage: number
         }
     }
 }

@@ -2,7 +2,7 @@
     <div class="header">
         <label>{{model.projectName}}</label>
         <div class="total-estimate" *ngIf="totalEstimate() as item">
-            {{item.totalHr}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+            {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
         </div>
         <button mat-icon-button (click)="onMasterModal()">
             <mat-icon>settings</mat-icon>
@@ -73,19 +73,19 @@
             </div>
             <div class="panel-total">
                 <div class="panel-value">
-                    {{item.totalHr}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+                    {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
                 </div>
             </div>
             <div class="panel-other">
                 <div class="panel-dev-ut">
                     <div class="panel-dev-ut-value">
-                        {{item.devHr}}<span>Hrs</span>
+                        {{item.devHr.toFixed(1)}}<span>Hrs</span>
                     </div>
                     <div class="panel-dev-ut-text">Development</div>
                 </div>
                 <div class="panel-dev-ut">
                     <div class="panel-dev-ut-value">
-                        {{item.unitTestHr}}<span>Hrs</span>
+                        {{item.unitTestHr.toFixed(1)}}<span>Hrs</span>
                     </div>
                     <div class="panel-dev-ut-text">Unit Test</div>
                 </div>
@@ -109,20 +109,20 @@
                                 <div class="panel-sections-item-name">
                                     <div class="panel-sections-item-name-value">{{feature.name}}</div>
                                     <div class="panel-sections-item-name-pd">
-                                        {{item.totalHr}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+                                        {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
                                     </div>
                                 </div>
                                 <div class="panel-sections-item-data">
                                     <div class="panel-sections-item-data-dev-ut">
                                         <div class="panel-sections-item-data-dev-ut-text">Development -</div>
                                         <div class="panel-sections-item-data-dev-ut-value">
-                                            {{item.devHr}}<span>Hrs</span>
+                                            {{item.devHr.toFixed(1)}}<span>Hrs</span>
                                         </div>
                                     </div>
                                     <div class="panel-sections-item-data-dev-ut">
                                         <div class="panel-sections-item-data-dev-ut-text">Unit Test -</div>
                                         <div class="panel-sections-item-data-dev-ut-value">
-                                            {{item.unitTestHr}}<span>Hrs</span>
+                                            {{item.unitTestHr.toFixed(1)}}<span>Hrs</span>
                                         </div>
                                     </div>
                                 </div>

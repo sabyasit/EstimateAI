@@ -1,3 +1,6 @@
+card
 chart
 form
+menu
+search
 table
