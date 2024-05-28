@@ -6,6 +6,7 @@ const { Jimp } = window as any;
 import { ProcessDetails } from './train.model';
 import { ApiService } from './api.service';
 import { firstValueFrom } from 'rxjs';
+import { ImageWorkerService } from './image-worker.service';
 
 declare const Buffer: any;
 
@@ -16,7 +17,7 @@ declare const Buffer: any;
 export class PredictionService {
   PREDICTION_CLASSES = ['card', 'chart', 'form', 'menu', 'search', 'table'];
 
-  constructor(public apiService: ApiService) { }
+  constructor(public apiService: ApiService, public imageWorkerService: ImageWorkerService) { }
 
   async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
     //const model = await tf.loadGraphModel('assets/model/model.json');
@@ -32,7 +33,7 @@ export class PredictionService {
     await this.sleep();
 
     for (let i = 0; i < coordinates.length; i++) {
-      const cropImage = await this.getCorpImage(image, coordinates[i].value);
+      const cropImage = await this.imageWorkerService.getCorpImage(image, coordinates[i].value);
       const predictions = await new Promise<any>((resolve: any, reject: any) => {
         const img = new Image();
         img.onload = async () => {
@@ -52,7 +53,7 @@ export class PredictionService {
       });
       onPredection({
         display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`,
-        data: { predictions: predictions, id: coordinates[i].id }
+        data: { predictions: predictions, id: coordinates[i].id }, image: cropImage
       });
       await this.sleep();
     }
@@ -67,7 +68,7 @@ export class PredictionService {
     await this.sleep();
 
     for (let j = 0; j < coordinates.length; j++) {
-      const cropImage = await this.getCorpImage(image, coordinates[j].value);
+      const cropImage = await this.imageWorkerService.getCorpImage(image, coordinates[j].value);
 
       let imageBuffer = Buffer.from(cropImage.split(',')[1], 'base64');
 
@@ -117,7 +118,7 @@ export class PredictionService {
 
       onPredection({
         display: true, text: 'Estimate prediction...', value: `${j + 1}/${coordinates.length}`,
-        data: { predictions: predictions, id: coordinates[j].id }
+        data: { predictions: predictions, id: coordinates[j].id }, image: cropImage
       });
       await this.sleep();
     }
@@ -125,20 +126,7 @@ export class PredictionService {
     onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
   }
 
-  getCorpImage = (image: any, coordinates: any) => {
-    return new Promise<any>((resolve: any, reject: any) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas: HTMLCanvasElement = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = coordinates[2];
-        canvas.height = coordinates[3];
-        ctx!.drawImage(img, coordinates[0], coordinates[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/png'));
-      }
-      img.src = image;
-    });
-  }
+  
 
   sleep = () => {
     return new Promise((resolve: any, reject: any) => {

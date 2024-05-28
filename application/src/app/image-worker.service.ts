@@ -45,24 +45,6 @@ export class ImageWorkerService {
     onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
   }
 
-  async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
-    //const model = await tf.loadGraphModel('assets/model/model.json');
-
-    const model = await tf.loadLayersModel('assets/model/model.json');
-
-    onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
-    await this.sleep();
-
-    for (let i = 0; i < coordinates.length; i++) {
-      const cropImage = await this.getCorpImage(image, coordinates[i].value);
-      const predictions = await this.prediction(cropImage, model);
-      onPredection({ display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`, data: { predictions: predictions.array, image: predictions.image, id: coordinates[i].id } });
-      await this.sleep();
-    }
-
-    onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
-  }
-
   changeGrayStyle = (image: any) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -288,10 +270,48 @@ export class ImageWorkerService {
         });
         array.sort((a, b) => a.value > b.value ? -1 : 1);
         console.log(array);
-        resolve({array, image})
+        resolve({ array, image })
       }
       img.src = image;
     });
+  }
+
+  getImageMatch = (src: any, test: any): Promise<number> => {
+    return new Promise(async (resolve: any) => {
+      const cv = (window as any).cv;
+
+      const imgSrc = new Image();
+      imgSrc.src = src;
+      await new Promise(r => {
+        imgSrc.onload = r
+      });
+      let srcCV = cv.imread(imgSrc);
+      cv.cvtColor(srcCV, srcCV, cv.COLOR_RGBA2GRAY, 0);
+      let srcVec = new cv.MatVector();
+      srcVec.push_back(srcCV);
+      let histSrc = new cv.Mat();
+      let maskSrc = new cv.Mat();
+      cv.calcHist(srcVec, [0], maskSrc, histSrc, [256], [0, 255], false);
+      cv.minMaxLoc(histSrc, maskSrc);
+
+      const testSrc = new Image();
+      testSrc.src = test;
+      await new Promise(r => {
+        testSrc.onload = r
+      });
+      let testCV = cv.imread(testSrc);
+      cv.cvtColor(testCV, testCV, cv.COLOR_RGBA2GRAY, 0);
+      let testVec = new cv.MatVector();
+      testVec.push_back(testCV);
+      let histTest = new cv.Mat();
+      let maskTest = new cv.Mat();
+      cv.calcHist(testVec, [0], maskTest, histTest, [256], [0, 255], false);
+      cv.minMaxLoc(histTest, maskTest);
+
+      let compare_result = cv.compareHist(histSrc, histTest, 0);
+
+      resolve(compare_result);
+    })
   }
 
   sleep = () => {

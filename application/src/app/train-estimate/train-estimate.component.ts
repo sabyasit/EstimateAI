@@ -117,20 +117,26 @@ export class TrainEstimateComponent implements OnInit {
       this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
     })
 
-    this.transform.on("scaleend", (event: any) => {
+    this.transform.on("scaleend", async (event: any) => {
       for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
         if (this.model.pages[this.currentPageIndex].features[i].id === event.feature.getId()) {
           this.model.pages[this.currentPageIndex].features[i].coordinates = event.feature.getGeometry().getCoordinates();
+          if (this.model.pages[this.currentPageIndex].features[i].common) {
+            this.model.pages[this.currentPageIndex].features[i].image = await this.getCommonFeatureImage(this.model.pages[this.currentPageIndex].features[i]);
+          }
           this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
         }
       }
       sessionStorage.setItem('model', JSON.stringify(this.model));
     });
 
-    this.transform.on("translateend", (event: any) => {
+    this.transform.on("translateend", async (event: any) => {
       for (let i = 0; i < this.model.pages[this.currentPageIndex].features.length; i++) {
         if (this.model.pages[this.currentPageIndex].features[i].id === event.feature.getId()) {
           this.model.pages[this.currentPageIndex].features[i].coordinates = event.feature.getGeometry().getCoordinates();
+          if (this.model.pages[this.currentPageIndex].features[i].common) {
+            this.model.pages[this.currentPageIndex].features[i].image = await this.getCommonFeatureImage(this.model.pages[this.currentPageIndex].features[i]);
+          }
           this.map.getOverlayById(event.feature.getId())?.setPosition(event.feature.getGeometry().getCoordinates()[0].reduce((acc: any, val: any) => acc[1] > val[1] ? acc : val));
         }
       }
@@ -143,7 +149,8 @@ export class TrainEstimateComponent implements OnInit {
       for (let i = 0; i < this.model.pages[index].features!.length; i++) {
         this.addFeature(this.model.pages[index].features[i].id,
           this.model.pages[index].features[i].coordinates,
-          this.model.pages[index].features[i].color);
+          this.model.pages[index].features[i].color,
+          this.model.pages[index].features[i].commonId);
       }
     }
 
@@ -152,7 +159,7 @@ export class TrainEstimateComponent implements OnInit {
     });
   }
 
-  addFeature(id: number, coordinates: any, color: string) {
+  addFeature(id: number, coordinates: any, color: string, commonId?: number) {
     const data = this.calculatePageHrs(id);
     let feature: Feature = new Feature<Polygon>({
       geometry: new Polygon(coordinates)
@@ -166,7 +173,7 @@ export class TrainEstimateComponent implements OnInit {
         width: 2
       }),
       text: new Text({
-        text: data.totalHr === 0 ? 'Not Estimated' : `${data.totalHr} Hrs | ${data.totalPd} Pd`,
+        text: commonId ? 'Common Feature' : (data.totalHr === 0 ? 'Not Estimated' : `${data.totalHr} Hrs | ${data.totalPd} Pd`),
         fill: new Fill({ color: '#000' }),
         stroke: new Stroke({ color: '#FFF', width: 3 }),
         font: 'bold 13px Tahoma'
@@ -257,7 +264,7 @@ export class TrainEstimateComponent implements OnInit {
       width: '400px',
       autoFocus: false,
       disableClose: true
-    }).afterClosed().subscribe((value: any) => {
+    }).afterClosed().subscribe(async (value: any) => {
       if (!value) {
         return;
       }
@@ -273,13 +280,27 @@ export class TrainEstimateComponent implements OnInit {
       }
 
       if (value.type === 'NEW') {
+        debugger;
         (this.map.getAllLayers()[1].getSource() as any).removeFeature(event.feature);
         value.data.coordinates = event.feature.getGeometry().getCoordinates();
         value.data.complete = true;
         value.data.id = Date.now();
         this.model.pages[this.currentPageIndex].features.push(value.data);
-        sessionStorage.setItem('model', JSON.stringify(this.model));
         this.addFeature(value.data.id, value.data.coordinates, value.data.color);
+
+        const image = await this.getCommonFeatureImage(value.data);
+        if (value.data.common) {
+          value.data.image = image;
+        }
+        const commonFeatureId = await this.getCommonFeatureId(image);
+        if(commonFeatureId && commonFeatureId != value.data.id) {
+          value.data.commonId = commonFeatureId;
+          const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(value.data.id)!;
+          (feature.getStyle() as any).getText().setText(`Common Feature`);
+          (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
+        }
+
+        sessionStorage.setItem('model', JSON.stringify(this.model));
       }
 
       if (value.type === 'EDIT') {
@@ -293,10 +314,30 @@ export class TrainEstimateComponent implements OnInit {
             this.model.pages[this.currentPageIndex].features[i].color = value.data.color;
             this.model.pages[this.currentPageIndex].features[i].common = value.data.common;
             this.model.pages[this.currentPageIndex].features[i].complete = true;
+            this.model.pages[this.currentPageIndex].features[i].image = null;
 
+            const image = await this.getCommonFeatureImage(this.model.pages[this.currentPageIndex].features[i]);
+            if (value.data.common) {
+              this.model.pages[this.currentPageIndex].features[i].image = image;
+            } else {
+              for (let page = 0; page < this.model.pages.length; page++) {
+                for (let feature = 0; feature < this.model.pages[page].features.length; feature++) {
+                  if (this.model.pages[page].features[feature].commonId === data.id) {
+                    this.model.pages[page].features[feature].commonId = undefined;
+                  }
+                }
+              }
+            }
+
+            const commonFeatureId = await this.getCommonFeatureId(image);
             const estimates = this.calculatePageHrs(data.id);
             const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(data.id)!;
-            (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+            if(commonFeatureId && commonFeatureId !== data.id) {
+              (feature.getStyle() as any).getText().setText(`Common Feature`);
+              this.model.pages[this.currentPageIndex].features[i].commonId = commonFeatureId;
+            } else {
+              (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+            }
             (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
           }
         }
@@ -305,11 +346,19 @@ export class TrainEstimateComponent implements OnInit {
     });
   }
 
+  async getCommonFeatureImage(feature: any) {
+    const extent = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(feature.id)!.getGeometry()!.getExtent();
+    const coordinates = [extent[0], this.model.pages[this.currentPageIndex].height - extent[3], extent[2] - extent[0], extent[3] - extent[1]];
+
+    const srcImage = await this.imageWorkerService.getCorpImage(this.model.pages[this.currentPageIndex].data, coordinates);
+    return srcImage;
+  }
+
   calculatePageHrs(id?: number) {
     let devHr = 0;
     if (id) {
       const feature = this.model.pages[this.currentPageIndex].features.find(x => x.id === id)!;
-      if (feature.complete) {
+      if (feature.complete && !feature.commonId) {
         const view = this.model.master.views.find(x => x.item === feature.view)!.hr;
         const service = this.model.master.services.find(x => x.item === feature.service)!.hr;
         const logic = this.model.master.logics.find(x => x.item === feature.logic)!.hr;
@@ -317,7 +366,7 @@ export class TrainEstimateComponent implements OnInit {
         devHr = (view + service + logic) * feature.unit;
       }
     } else {
-      this.model.pages[this.currentPageIndex].features.filter(x => x.complete).forEach((item) => {
+      this.model.pages[this.currentPageIndex].features.filter(x => x.complete && !x.commonId).forEach((item) => {
         const view = this.model.master.views.find(x => x.item === item.view)!.hr;
         const service = this.model.master.services.find(x => x.item === item.service)!.hr;
         const logic = this.model.master.logics.find(x => x.item === item.logic)!.hr;
@@ -335,7 +384,7 @@ export class TrainEstimateComponent implements OnInit {
   totalEstimate() {
     let devHr = 0;
     this.model.pages.forEach((page) => {
-      page.features.filter(x => x.complete).forEach((item) => {
+      page.features.filter(x => x.complete && !x.commonId).forEach((item) => {
         const view = this.model.master.views.find(x => x.item === item.view)!.hr;
         const service = this.model.master.services.find(x => x.item === item.service)!.hr;
         const logic = this.model.master.logics.find(x => x.item === item.logic)!.hr;
@@ -454,9 +503,10 @@ export class TrainEstimateComponent implements OnInit {
       this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
         .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
         .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
-      (data: ProcessDetails) => {
+      async (data: ProcessDetails) => {
         this.processPredectionImage = data;
         if (this.processPredectionImage.data) {
+          const commonFeatureId = await this.getCommonFeatureId(this.processPredectionImage.data);
           this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
             if (item.id === this.processPredectionImage.data.id) {
               const weightagePredictions = this.processPredectionImage.data.predictions.filter((x: any) => x.value > .49)
@@ -470,7 +520,7 @@ export class TrainEstimateComponent implements OnInit {
                 .sort((a: any, b: any) => a.weightage > b.weightage ? -1 : 1);
 
               for (let weightageIndex = 0; weightageIndex < weightagePredictions.length; weightageIndex++) {
-                if(weightageIndex === 0) {
+                if (weightageIndex === 0) {
                   item.view = this.model.prediction[weightagePredictions[weightageIndex].index].view;
                   item.logic = this.model.prediction[weightagePredictions[weightageIndex].index].logic;
                   item.service = this.model.prediction[weightagePredictions[weightageIndex].index].service;
@@ -478,6 +528,7 @@ export class TrainEstimateComponent implements OnInit {
                   item.name = `Section ${i}`;
                   item.complete = true;
                   item.data = JSON.stringify(this.processPredectionImage.data.predictions);
+                  item.commonId = commonFeatureId;
                 } else {
                   item.unit += weightagePredictions[weightageIndex].weightage;
                 }
@@ -485,12 +536,30 @@ export class TrainEstimateComponent implements OnInit {
 
               const estimates = this.calculatePageHrs(item.id);
               const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
-              (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+              if(item.commonId) {
+                (feature.getStyle() as any).getText().setText(`Common Feature`);
+              } else {
+                (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+              }
               (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
             }
           })
           //sessionStorage.setItem('model', JSON.stringify(this.model));
         }
       })
+  }
+
+  async getCommonFeatureId(image: any) {
+    for (let page = 0; page < this.model.pages.length; page++) {
+      for (let feature = 0; feature < this.model.pages[page].features.length; feature++) {
+        if (this.model.pages[page].features[feature].common) {
+          const match = await this.imageWorkerService.getImageMatch(image, this.model.pages[page].features[feature].image);
+          if(match > .80) {
+            return this.model.pages[page].features[feature].id;
+          }
+        }
+      }
+    }
+    return undefined;
   }
 }
