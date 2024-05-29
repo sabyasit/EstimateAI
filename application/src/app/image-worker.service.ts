@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { ProcessDetails } from './train.model';
+import ssim from "ssim.js";
 
 @Injectable({
   providedIn: 'root'
@@ -278,40 +279,52 @@ export class ImageWorkerService {
 
   getImageMatch = (src: any, test: any): Promise<number> => {
     return new Promise(async (resolve: any) => {
-      const cv = (window as any).cv;
-
+      let width = 256, height = 256;
       const imgSrc = new Image();
       imgSrc.src = src;
       await new Promise(r => {
         imgSrc.onload = r
       });
-      let srcCV = cv.imread(imgSrc);
-      cv.cvtColor(srcCV, srcCV, cv.COLOR_RGBA2GRAY, 0);
-      let srcVec = new cv.MatVector();
-      srcVec.push_back(srcCV);
-      let histSrc = new cv.Mat();
-      let maskSrc = new cv.Mat();
-      cv.calcHist(srcVec, [0], maskSrc, histSrc, [256], [0, 255], false);
-      cv.minMaxLoc(histSrc, maskSrc);
+      const canvasSrc = document.createElement('canvas');
+      const ctxSrc = canvasSrc.getContext('2d');
+      canvasSrc.width = width;
+      canvasSrc.height = height;
+      ctxSrc?.drawImage(imgSrc, 0, 0, imgSrc.width, imgSrc.height, 0, 0, width, height);
+      const srcData = ctxSrc?.getImageData(0, 0, width, height);
 
-      const testSrc = new Image();
-      testSrc.src = test;
+      const imgTest = new Image();
+      imgTest.src = test;
       await new Promise(r => {
-        testSrc.onload = r
+        imgTest.onload = r
       });
-      let testCV = cv.imread(testSrc);
-      cv.cvtColor(testCV, testCV, cv.COLOR_RGBA2GRAY, 0);
-      let testVec = new cv.MatVector();
-      testVec.push_back(testCV);
-      let histTest = new cv.Mat();
-      let maskTest = new cv.Mat();
-      cv.calcHist(testVec, [0], maskTest, histTest, [256], [0, 255], false);
-      cv.minMaxLoc(histTest, maskTest);
+      const canvasTest = document.createElement('canvas');
+      const ctxTest = canvasTest.getContext('2d');
+      canvasTest.width = width;
+      canvasTest.height = height;
+      ctxTest?.drawImage(imgTest, 0, 0, imgTest.width, imgTest.height, 0, 0, width, height);
+      const testData = ctxTest?.getImageData(0, 0, width, height);
 
-      let compare_result = cv.compareHist(histSrc, histTest, 0);
+      const { mssim, performance } = ssim(srcData!, testData!, {ssim: 'original'});
+      debugger;
 
-      resolve(compare_result);
+      resolve(mssim);
     })
+  }
+
+  getLimitDimensions = (
+    width: number,
+    height: number,
+    limit?: number
+  ) => {
+    if (limit && width >= limit && height >= limit) {
+      const ratio = width / height;
+
+      if (ratio > 1) {
+        return { height: limit, width: Math.round(limit / ratio) };
+      }
+      return { height: Math.round(limit * ratio), width: limit };
+    }
+    return { width, height };
   }
 
   sleep = () => {
