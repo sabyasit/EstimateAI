@@ -35,7 +35,8 @@ export interface TrainModel {
             commonId?: number,
             complete: boolean,
             data?: string,
-            image?: any
+            image?: any,
+            element?: Array<string>
         }>
     }>,
     prediction: {
@@ -43,7 +44,8 @@ export interface TrainModel {
             view: string,
             service: string,
             logic: string,
-            weightage: number
+            weightage: number,
+            reusability: number
         }
     }
 }

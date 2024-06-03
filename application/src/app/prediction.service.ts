@@ -21,8 +21,8 @@ export class PredictionService {
 
   async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
     //const model = await tf.loadGraphModel('assets/model/model.json');
-    //await this.predictWithYolo8Model(image, coordinates, onPredection);
-    await this.predictWithTfModel(image, coordinates, onPredection);
+    await this.predictWithYolo8Model(image, coordinates, onPredection);
+    //await this.predictWithTfModel(image, coordinates, onPredection);
 
   }
 
@@ -102,19 +102,19 @@ export class PredictionService {
       });
       predictions.sort((a, b) => a.value > b.value ? -1 : 1);
 
-      if (predictions[0].value < .5) {
-        try {
-          const response = await firstValueFrom(this.apiService.getGPT4ImageClassification(cropImage));
-          if (response?.choices[0]?.message?.content) {
-            predictions = JSON.parse(response.choices[0].message.content.replace(/'/g, '"')).map((x: any) => {
-              return {
-                index: x,
-                value: 1
-              }
-            })
-          }
-        } catch { }
-      }
+      // if (predictions[0].value < .5) {
+      //   try {
+      //     const response = await firstValueFrom(this.apiService.getGPT4ImageClassification(cropImage));
+      //     if (response?.choices[0]?.message?.content) {
+      //       predictions = JSON.parse(response.choices[0].message.content.replace(/'/g, '"')).map((x: any) => {
+      //         return {
+      //           index: x,
+      //           value: 1
+      //         }
+      //       })
+      //     }
+      //   } catch { }
+      // }
 
       onPredection({
         display: true, text: 'Estimate prediction...', value: `${j + 1}/${coordinates.length}`,

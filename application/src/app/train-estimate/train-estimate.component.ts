@@ -295,6 +295,7 @@ export class TrainEstimateComponent implements OnInit {
             this.model.pages[this.currentPageIndex].features[i].logic = value.data.logic;
             this.model.pages[this.currentPageIndex].features[i].color = value.data.color;
             this.model.pages[this.currentPageIndex].features[i].common = value.data.common;
+            this.model.pages[this.currentPageIndex].features[i].element = value.data.element;
             this.model.pages[this.currentPageIndex].features[i].complete = true;
 
             const estimates = this.calculatePageHrs(data.id);
@@ -321,7 +322,7 @@ export class TrainEstimateComponent implements OnInit {
 
         devHr = (view + service + logic) * feature.unit;
 
-        if(feature.commonId) {
+        if (feature.commonId) {
           devHr = 0;
         }
       }
@@ -474,10 +475,14 @@ export class TrainEstimateComponent implements OnInit {
                   return {
                     index: x.index,
                     value: x.value,
-                    weightage: this.model.prediction[x.index].weightage
+                    weightage: +this.model.prediction[x.index].weightage
                   }
                 })
                 .sort((a: any, b: any) => a.weightage > b.weightage ? -1 : 1);
+
+              if (weightagePredictions.length === 0) {
+                return;
+              }
 
               for (let weightageIndex = 0; weightageIndex < weightagePredictions.length; weightageIndex++) {
                 if (weightageIndex === 0) {
@@ -488,6 +493,7 @@ export class TrainEstimateComponent implements OnInit {
                   item.name = `Section ${i}`;
                   item.complete = true;
                   item.data = JSON.stringify(this.processPredectionImage.data.predictions);
+                  item.element = weightagePredictions.map((x: any) => x.index.toLowerCase());
                 } else {
                   item.unit += weightagePredictions[weightageIndex].weightage;
                 }
@@ -503,7 +509,7 @@ export class TrainEstimateComponent implements OnInit {
               (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
             }
           })
-          //sessionStorage.setItem('model', JSON.stringify(this.model));
+          sessionStorage.setItem('model', JSON.stringify(this.model));
         }
       })
   }
@@ -536,16 +542,17 @@ export class TrainEstimateComponent implements OnInit {
         }
 
         if (featureItem?.common) {
-          const match = await this.imageWorkerService.getImageMatch(featureItem?.image, this.model.pages[page].features[feature].image);
-          if (match > .60) {
+          const match = await this.imageWorkerService.getImageMatch(this.model.pages[page].features[feature].image, featureItem?.image);
+          if (match > .75) {
             this.model.pages[page].features[feature].commonId = id;
             this.model.pages[page].features[feature].complete = true;
           }
+          console.log(this.model.pages[page].features[feature].name, match);
         }
 
         if (this.model.pages[page].features[feature].common) {
           const match = await this.imageWorkerService.getImageMatch(featureItem?.image, this.model.pages[page].features[feature].image);
-          if (match > .60) {
+          if (match > .75) {
             for (let featureIndex = 0; featureIndex < this.model.pages[this.currentPageIndex].features.length; featureIndex++) {
               if (this.model.pages[this.currentPageIndex].features[featureIndex].id === id) {
                 this.model.pages[this.currentPageIndex].features[featureIndex].commonId = this.model.pages[page].features[feature].id;
@@ -558,6 +565,7 @@ export class TrainEstimateComponent implements OnInit {
               }
             }
           }
+          console.log(this.model.pages[page].features[feature].name, match);
         }
       }
     }

@@ -63,6 +63,14 @@
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>
+                            <mat-form-field appearance="fill">
+                                <mat-label>Weightage</mat-label>
+                                <input matInput type="number" [(ngModel)]="model.prediction[key].weightage">
+                            </mat-form-field>
+                            <mat-form-field appearance="fill">
+                                <mat-label>Reusability</mat-label>
+                                <input matInput type="number" [(ngModel)]="model.prediction[key].reusability">
+                            </mat-form-field>
                         </mat-expansion-panel>
                     </ng-container>
                 </mat-accordion>

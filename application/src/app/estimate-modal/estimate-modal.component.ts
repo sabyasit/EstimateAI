@@ -19,8 +19,11 @@ export class EstimateModalComponent implements OnInit {
     service: new FormControl(),
     logic: new FormControl(),
     common: new FormControl(false),
-    color: new FormControl('#FF0000')
+    color: new FormControl('#FF0000'),
+    element: new FormControl()
   });
+
+  predictionKeys: Array<string> = [];
 
   constructor(public dialogRef: MatDialogRef<EstimateModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any) { }
@@ -39,9 +42,11 @@ export class EstimateModalComponent implements OnInit {
         service: this.data.value.service,
         logic: this.data.value.logic,
         common: this.data.value.common,
-        color: this.data.value.color
+        color: this.data.value.color,
+        element: this.data.value.element || []
       });
     }
+    this.predictionKeys = Object.keys(this.model.prediction).map(x => x.toLowerCase());
   }
 
   onSave() {

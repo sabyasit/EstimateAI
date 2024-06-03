@@ -280,6 +280,20 @@ export class ImageWorkerService {
   getImageMatch = (src: any, test: any): Promise<number> => {
     return new Promise(async (resolve: any) => {
       let width = 256, height = 256;
+      const imgTest = new Image();
+      imgTest.src = test;
+      await new Promise(r => {
+        imgTest.onload = r
+      });
+      width = imgTest.width;
+      height = imgTest.height;
+      const canvasTest = document.createElement('canvas');
+      const ctxTest = canvasTest.getContext('2d');
+      canvasTest.width = width;
+      canvasTest.height = height;
+      ctxTest?.drawImage(imgTest, 0, 0, imgTest.width, imgTest.height, 0, 0, width, height);
+      const testData = ctxTest?.getImageData(0, 0, width, height);
+
       const imgSrc = new Image();
       imgSrc.src = src;
       await new Promise(r => {
@@ -292,20 +306,7 @@ export class ImageWorkerService {
       ctxSrc?.drawImage(imgSrc, 0, 0, imgSrc.width, imgSrc.height, 0, 0, width, height);
       const srcData = ctxSrc?.getImageData(0, 0, width, height);
 
-      const imgTest = new Image();
-      imgTest.src = test;
-      await new Promise(r => {
-        imgTest.onload = r
-      });
-      const canvasTest = document.createElement('canvas');
-      const ctxTest = canvasTest.getContext('2d');
-      canvasTest.width = width;
-      canvasTest.height = height;
-      ctxTest?.drawImage(imgTest, 0, 0, imgTest.width, imgTest.height, 0, 0, width, height);
-      const testData = ctxTest?.getImageData(0, 0, width, height);
-
       const { mssim, performance } = ssim(srcData!, testData!, {ssim: 'original'});
-      debugger;
 
       resolve(mssim);
     })

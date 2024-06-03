@@ -34,6 +34,14 @@
             </mat-select>
         </mat-form-field>
         <mat-checkbox style="margin-bottom: 16px;" formControlName="common">Common</mat-checkbox>
+        <mat-form-field appearance="fill">
+            <mat-label>Element</mat-label>
+            <mat-select formControlName="element" multiple>
+                <mat-option *ngFor="let key of predictionKeys" [value]="key">
+                    {{key}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
         <mat-form-field>
             <mat-label>color</mat-label>
             <input matInput type="color" formControlName="color">
