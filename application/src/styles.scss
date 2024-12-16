@@ -46,3 +46,9 @@ html {
         z-index: 1000;
     }
 }
+
+.mat-expansion-panel-body {
+    display: flex;
+    gap: 0px 20px;
+    flex-wrap: wrap;
+}

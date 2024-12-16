@@ -167,7 +167,7 @@ export class TrainEstimateComponent implements OnInit {
         width: 2
       }),
       text: new Text({
-        text: commonId ? 'Common' : (data.totalHr === 0 ? 'Not Estimated' : `${data.totalHr} Hrs | ${data.totalPd} Pd`),
+        text: commonId ? 'Common' : (data.totalHr === 0 ? 'Not Estimated' : `${data.totalHr.toFixed(0)} Hrs | ${data.totalPd} Pd`),
         fill: new Fill({ color: '#000' }),
         stroke: new Stroke({ color: '#FFF', width: 3 }),
         font: 'bold 13px Tahoma'
@@ -300,7 +300,7 @@ export class TrainEstimateComponent implements OnInit {
 
             const estimates = this.calculatePageHrs(data.id);
             const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(data.id)!;
-            (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+            (feature.getStyle() as any).getText().setText(`${estimates.totalHr.toFixed(0)} Hrs | ${estimates.totalPd} Pd`);
             (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
 
             await this.setCommonFeatureId(data.id);
@@ -470,7 +470,7 @@ export class TrainEstimateComponent implements OnInit {
         if (this.processPredectionImage.data) {
           this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
             if (item.id === this.processPredectionImage.data.id) {
-              const weightagePredictions = this.processPredectionImage.data.predictions.filter((x: any) => x.value > .49)
+              const weightagePredictions = this.processPredectionImage.data.predictions.filter((x: any) => x.value > .40)
                 .map((x: any) => {
                   return {
                     index: x.index,
@@ -504,7 +504,7 @@ export class TrainEstimateComponent implements OnInit {
               if (item.commonId) {
                 (feature.getStyle() as any).getText().setText(`common`);
               } else {
-                (feature.getStyle() as any).getText().setText(`${estimates.totalHr} Hrs | ${estimates.totalPd} Pd`);
+                (feature.getStyle() as any).getText().setText(`${estimates.totalHr.toFixed(0)} Hrs | ${estimates.totalPd} Pd`);
               }
               (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
             }
