@@ -62,6 +62,7 @@ export class PredictionService {
   }
 
   async predictWithYolo8Model(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
+    ort.env.wasm.wasmPaths = 'assets/';
     const session = await ort.InferenceSession.create("assets/model_yolov8/best.onnx");
 
     onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
