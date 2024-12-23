@@ -23,8 +23,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatExpansionModule } from '@angular/material/expansion';
-
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ImageWorkerService } from './image-worker.service';
+import { CodeModalComponent } from './code-model/code-modal.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { ImageWorkerService } from './image-worker.service';
     FileUploadComponent,
     TrainEstimateComponent,
     EstimateModalComponent,
-    MasterModalComponent
+    MasterModalComponent,
+    CodeModalComponent
   ],
   imports: [
     BrowserModule,
@@ -52,7 +54,8 @@ import { ImageWorkerService } from './image-worker.service';
     MatTabsModule,
     MatProgressBarModule,
     MatTooltipModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MonacoEditorModule.forRoot()
   ],
   providers: [ImageWorkerService],
   bootstrap: [AppComponent]

@@ -26,6 +26,7 @@ import { MasterModalComponent } from '../master-modal/master-modal.component';
 import { ImageWorkerService } from '../image-worker.service';
 import { PredictionService } from '../prediction.service';
 import { ExportService } from '../export.service';
+import { CodeModalComponent } from '../code-model/code-modal.component';
 
 @Component({
   selector: 'app-train-estimate',
@@ -206,7 +207,14 @@ export class TrainEstimateComponent implements OnInit {
     li_delete.addEventListener('click', (event: any) => {
       this.deleteFeature(+event.target.id)
     })
+    const li_genCode = document.createElement('li');
+    li_genCode.innerText = 'Code';
+    li_genCode.setAttribute('id', feature.getId()!.toString());
+    li_genCode.addEventListener('click', (event: any) => {
+      this.generateCode(+event.target.id)
+    })
     ul.appendChild(li_edit);
+    ul.appendChild(li_genCode);
     ul.appendChild(li_delete);
     div.appendChild(ul);
 
@@ -570,5 +578,17 @@ export class TrainEstimateComponent implements OnInit {
       }
     }
     sessionStorage.setItem('model', JSON.stringify(this.model));
+  }
+
+  async generateCode(id: number) {
+    const feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(id)!.getGeometry()!.getExtent();
+    const image  = await this.imageWorkerService.getCorpImage(this.model.pages[this.currentPageIndex].data, 
+      [feature[0], this.model.pages[this.currentPageIndex].height - feature[3], feature[2] - feature[0], feature[3] - feature[1]]);
+    this.dialog.open(CodeModalComponent, {
+      data: { image },
+      width: '800px',
+      autoFocus: false,
+      disableClose: true
+    })
   }
 }

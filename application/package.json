@@ -24,6 +24,8 @@
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "jimp": "^0.22.12",
+    "monaco-editor": "^0.34.1",
+    "ngx-monaco-editor-v2": "^15.0.1",
     "ol": "^9.0.0",
     "ol-ext": "^4.0.17",
     "onnxruntime-web": "^1.17.3",

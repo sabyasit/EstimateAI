@@ -1,0 +1,25 @@
+<div class="code-header">
+    <h1>Generate code</h1>
+    <select [(value)]="lang">
+        <option value="1">Angular</option>
+        <option value="2">React</option>
+    </select>
+    <button mat-raised-button color="primary" [disabled]="loading" (click)="generateCode()">Generate</button>
+    <button mat-icon-button (click)="dialogRef.close()">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+<div mat-dialog-content style="padding: 0px 10px 20px;">
+    <div class="code-content">
+        <div [ngClass]="{ 'img-container': !loading, 'img-container-active': loading }" class="img-container">
+            <span class="top-left"></span>
+            <span class="top-right"></span>
+            <span class="bottom-left"></span>
+            <span class="bottom-right"></span>
+            <img src="{{image}}" />
+        </div>
+    </div>
+    <div style="height: 600px;" *ngIf="code">
+        <ngx-monaco-editor style="height: 600px;" [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+    </div>
+</div>
