@@ -9,8 +9,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 export class CodeModalComponent {
   image: any;
   lang: any = '1';
-  loading: boolean = false;
-  editorOptions = { theme: 'vs-dark', language: 'javascript', readOnly: true, minimap: false };
+  loading: number = 1;
+  editorOptions = { theme: 'vs-dark', language: 'javascript', readOnly: true, minimap: { enabled: false } };
   code: string = '';
 
   constructor(public dialogRef: MatDialogRef<CodeModalComponent>,
@@ -19,10 +19,15 @@ export class CodeModalComponent {
     this.image = model.image;
   }
 
+  onLangChange() {
+	this.loading = 1;
+	this.code = '';
+  }
+
   generateCode() {
-    this.loading = true;
+    this.loading = 2;
     setTimeout(() => {
-      this.loading = false;
+      this.loading = 3;
       this.code = `import { Component, ViewChild } from '@angular/core';
 import {
 	MonacoEditorComponent,
@@ -69,6 +74,6 @@ export class AppComponent  {
 	}
 }
 `
-    }, 5000);
+    }, 3000);
   }
 }
