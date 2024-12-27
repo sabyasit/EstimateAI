@@ -26,6 +26,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ImageWorkerService } from './image-worker.service';
 import { CodeModalComponent } from './code-model/code-modal.component';
+import { SectionStepModalComponent } from './section-step/section-step.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { CodeModalComponent } from './code-model/code-modal.component';
     TrainEstimateComponent,
     EstimateModalComponent,
     MasterModalComponent,
-    CodeModalComponent
+    CodeModalComponent,
+    SectionStepModalComponent
   ],
   imports: [
     BrowserModule,

@@ -19,7 +19,11 @@ export class ImageWorkerService {
     onImage({ display: true, text: 'Changing blur...', value: 50, data: grayImage });
     await this.sleep();
 
-    const blurImage = await this.changeBlur(grayImage);
+    const thresholdImage = await this.changeThreshold(grayImage);
+    onImage({ display: true, text: 'Changing threshold...', value: 55, data: thresholdImage });
+    await this.sleep();
+
+    const blurImage = await this.changeBlur(thresholdImage);
     onImage({ display: true, text: 'Changing dilation...', value: 60, data: blurImage });
     await this.sleep();
 
@@ -146,6 +150,34 @@ export class ImageWorkerService {
         src.delete();
         dilated.delete();
         kernel.delete();
+
+        resolve(canvas.toDataURL('image/png'));
+      }
+      img.src = image;
+    })
+  }
+
+  changeThreshold = (image: any) => {
+    return new Promise<any>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas: HTMLCanvasElement = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx!.drawImage(img, 0, 0, img.width, img.height);
+
+        const cv = (window as any).cv;
+
+        const src = cv.imread(canvas);
+
+        let dst = new cv.Mat();
+        cv.threshold(src, dst, 253, 255, cv.THRESH_BINARY);
+
+        cv.imshow(canvas, dst);
+
+        src.delete();
+        dst.delete();
 
         resolve(canvas.toDataURL('image/png'));
       }
@@ -306,7 +338,7 @@ export class ImageWorkerService {
       ctxSrc?.drawImage(imgSrc, 0, 0, imgSrc.width, imgSrc.height, 0, 0, width, height);
       const srcData = ctxSrc?.getImageData(0, 0, width, height);
 
-      const { mssim, performance } = ssim(srcData!, testData!, {ssim: 'original'});
+      const { mssim, performance } = ssim(srcData!, testData!, { ssim: 'original' });
 
       resolve(mssim);
     })

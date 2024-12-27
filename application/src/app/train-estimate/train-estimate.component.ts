@@ -27,6 +27,7 @@ import { ImageWorkerService } from '../image-worker.service';
 import { PredictionService } from '../prediction.service';
 import { ExportService } from '../export.service';
 import { CodeModalComponent } from '../code-model/code-modal.component';
+import { SectionStepModalComponent } from '../section-step/section-step.component';
 
 @Component({
   selector: 'app-train-estimate',
@@ -420,19 +421,26 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   processImage() {
-    this.imageWorkerService.initImage(this.model.pages[this.currentPageIndex].data, (data: ProcessDetails) => {
-      this.processDetailsImage = data;
-      if (this.processDetailsImage.display) {
-        if (this.processDetailsImage.value != 95) {
-          this.map.getAllLayers()[0].setSource(new StaticImage({
-            url: this.processDetailsImage.data,
-            imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-          }));
-          this.map.getAllLayers()[0].getSource()?.refresh();
-        } else {
-          this.drawEdge(this.processDetailsImage.data)
-        }
-      }
+    // this.imageWorkerService.initImage(this.model.pages[this.currentPageIndex].data, (data: ProcessDetails) => {
+    //   this.processDetailsImage = data;
+    //   if (this.processDetailsImage.display) {
+    //     if (this.processDetailsImage.value != 95) {
+    //       this.map.getAllLayers()[0].setSource(new StaticImage({
+    //         url: this.processDetailsImage.data,
+    //         imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+    //       }));
+    //       this.map.getAllLayers()[0].getSource()?.refresh();
+    //     } else {
+    //       this.drawEdge(this.processDetailsImage.data)
+    //     }
+    //   }
+    // })
+    this.dialog.open(SectionStepModalComponent, {
+      width: '1100px',
+      autoFocus: false,
+      disableClose: true
+    }).afterClosed().subscribe(() => {
+      sessionStorage.setItem('model', JSON.stringify(this.model));
     })
   }
 
