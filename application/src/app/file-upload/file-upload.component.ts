@@ -63,7 +63,8 @@ export class FileUploadComponent {
             height: canvas.height,
             name: `Page-${i + 1}`,
             features: [],
-            complete: false
+            complete: false,
+            imageNodes: null
           })
         }
         sessionStorage.setItem('model', JSON.stringify(this.model));

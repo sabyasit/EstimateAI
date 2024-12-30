@@ -100,10 +100,16 @@ html {
 
 .drawflow .canny {
     width: 180px !important;
+    background-color: #d9d9d9 !important;
+
+    .drawflow-delete {
+        display: none !important;
+    }
 }
 
 .drawflow .start {
     background-color: #05c70f !important;
+    width: 80px !important;
 
     .drawflow_content_node {
         color: #FFF !important;
@@ -112,7 +118,7 @@ html {
 }
 
 .drawflow .end {
-    width: 150px !important;
+    width: 100px !important;
     background-color: #e30c0c !important;
 
     .drawflow_content_node {

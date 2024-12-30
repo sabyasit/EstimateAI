@@ -37,7 +37,8 @@ export interface TrainModel {
             data?: string,
             image?: any,
             element?: Array<string>
-        }>
+        }>,
+        imageNodes: any
     }>,
     prediction: {
         [key: string] : {

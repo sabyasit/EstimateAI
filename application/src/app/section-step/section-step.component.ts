@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, OnInit, ElementRef, AfterViewInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import Drawflow from 'drawflow';
 
@@ -11,8 +11,9 @@ export class SectionStepModalComponent implements OnInit {
 	@ViewChild('drawflow', { static: true }) drawflowEl!: ElementRef;
 	editor!: Drawflow;
 
-	constructor() {
-	}
+	constructor(public dialogRef: MatDialogRef<SectionStepModalComponent>,
+		@Inject(MAT_DIALOG_DATA) public model: any
+	) {}
 
 	ngOnInit(): void {
 		this.editor = new Drawflow(this.drawflowEl.nativeElement);
@@ -26,18 +27,24 @@ export class SectionStepModalComponent implements OnInit {
 
 		this.editor.start();
 
-		this.addNodes();
+		if(this.model) {
+			setTimeout(() => {
+				this.editor.import(this.model);
+			}, 300);
+		} else {
+			this.addNodes();
+		}
 	}
 
 	addNodes() {
-		const startNode = this.editor.addNode('start', 0, 1, 10, 10, 'start', {}, 'Input Image', false);
+		const startNode = this.editor.addNode('start', 0, 1, 10, 10, 'start', {}, 'Image', false);
 		const exposureNode = this.createExposureNode();
 		const grayStyleNode = this.createGrayStyleNode();
 		const thresholdNode = this.createThresholdNode();
 		const blurNode = this.createblurNode();
 		const dilationNode = this.createDilationNode();
 		const cannyNode = this.createCannyNode();
-		const endNode = this.editor.addNode('end', 1, 0, 1330, 335, 'end', {}, 'Output Coordinates', false);
+		const endNode = this.editor.addNode('end', 1, 0, 1330, 335, 'end', {}, 'Coordinates', false);
 
 		setTimeout(() => {
 			this.editor.addConnection(startNode, exposureNode, 'output_1', 'input_1');
@@ -152,9 +159,9 @@ export class SectionStepModalComponent implements OnInit {
 		};
 
 		traverseConnections(nodeId);
-		console.log(`Connected nodes to Node ${nodeId}:`, connectedNodes);
-
-		const connectedNodeDetails = connectedNodes.map((id) => nodes[id]);
-		console.log('Connected Node Details:', connectedNodeDetails);
+		const connectedNodeDetails = connectedNodes.map((id) => {
+			return { class: nodes[id].class, data: nodes[id].data }
+		});
+		this.dialogRef.close({ nodes: connectedNodeDetails, data: this.editor.export() });
 	}
 }	

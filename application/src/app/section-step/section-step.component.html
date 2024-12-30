@@ -3,12 +3,12 @@
     
     <button mat-raised-button [matMenuTriggerFor]="belowMenu" color="primary">Add Node</button>
     <mat-menu #belowMenu="matMenu" yPosition="below">
-        <button mat-menu-item (click)="createExposureNode('', 10, 400)">Exposure</button>
-        <button mat-menu-item (click)="createThresholdNode('', 10, 400)">Threshold</button>
-        <button mat-menu-item (click)="createblurNode('', 10, 400)">Gaussian Blur</button>
-        <button mat-menu-item (click)="createDilationNode('', 10, 400)">Dilation</button>
-        <button mat-menu-item (click)="createGrayStyleNode('', 10, 400)">Gray Scaled</button>
-        <button mat-menu-item (click)="createCannyNode('', 10, 400)">Canny Edge</button>
+        <button mat-menu-item (click)="createExposureNode('', 10, 300)">Exposure</button>
+        <button mat-menu-item (click)="createThresholdNode('', 10, 300)">Threshold</button>
+        <button mat-menu-item (click)="createblurNode('', 10, 300)">Gaussian Blur</button>
+        <button mat-menu-item (click)="createDilationNode('', 10, 300)">Dilation</button>
+        <button mat-menu-item (click)="createGrayStyleNode('', 10, 300)">Gray Scaled</button>
+        <button mat-menu-item (click)="createCannyNode('', 10, 300)">Canny Edge</button>
       </mat-menu>
     <button mat-icon-button mat-dialog-close>
         <mat-icon>close</mat-icon>

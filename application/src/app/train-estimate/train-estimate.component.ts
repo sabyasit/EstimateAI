@@ -421,26 +421,41 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   processImage() {
-    // this.imageWorkerService.initImage(this.model.pages[this.currentPageIndex].data, (data: ProcessDetails) => {
-    //   this.processDetailsImage = data;
-    //   if (this.processDetailsImage.display) {
-    //     if (this.processDetailsImage.value != 95) {
-    //       this.map.getAllLayers()[0].setSource(new StaticImage({
-    //         url: this.processDetailsImage.data,
-    //         imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
-    //       }));
-    //       this.map.getAllLayers()[0].getSource()?.refresh();
-    //     } else {
-    //       this.drawEdge(this.processDetailsImage.data)
-    //     }
-    //   }
-    // })
     this.dialog.open(SectionStepModalComponent, {
-      width: '1100px',
+      data: this.model.pages[this.currentPageIndex].imageNodes,
+      width: '1300px',
+      maxWidth: '1300px',
       autoFocus: false,
       disableClose: true
-    }).afterClosed().subscribe(() => {
-      sessionStorage.setItem('model', JSON.stringify(this.model));
+    }).afterClosed().subscribe((value: any) => {
+      if(!value) return;
+      
+      this.model.pages[this.currentPageIndex].imageNodes = value.data;
+      this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
+        const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
+        (this.map.getAllLayers()[1].getSource() as any).removeFeature(feature);
+        this.map.removeOverlay(this.map.getOverlayById(item.id)!);
+      });
+      this.model.pages[this.currentPageIndex].features = [];
+      this.imageWorkerService.initImage(this.model.pages[this.currentPageIndex].data, value.nodes, (data: ProcessDetails) => {
+        this.processDetailsImage = data;
+        if (this.processDetailsImage.display) {
+          if (this.processDetailsImage.value != 95) {
+            this.map.getAllLayers()[0].setSource(new StaticImage({
+              url: this.processDetailsImage.data,
+              imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+            }));
+            this.map.getAllLayers()[0].getSource()?.refresh();
+          } else {
+            this.map.getAllLayers()[0].setSource(new StaticImage({
+              url: this.model.pages[this.currentPageIndex].data,
+              imageExtent: [0, 0, this.model.pages[this.currentPageIndex].width, this.model.pages[this.currentPageIndex].height]
+            }));
+            this.map.getAllLayers()[0].getSource()?.refresh();
+            this.drawEdge(this.processDetailsImage.data)
+          }
+        }
+      })
     })
   }
 

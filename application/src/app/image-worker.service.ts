@@ -7,47 +7,59 @@ import ssim from "ssim.js";
   providedIn: 'root'
 })
 export class ImageWorkerService {
-  async initImage(image: any, onImage: (data: ProcessDetails) => void) {
-    onImage({ display: true, text: 'Changing exposure...', value: 0, data: image });
-    await this.sleep();
-
-    const exposureImage = await this.changeExposure(image, 5);
-    onImage({ display: true, text: 'Changing gray style...', value: 25, data: exposureImage });
-    await this.sleep();
-
-    const grayImage = await this.changeGrayStyle(exposureImage);
-    onImage({ display: true, text: 'Changing blur...', value: 50, data: grayImage });
-    await this.sleep();
-
-    const thresholdImage = await this.changeThreshold(grayImage);
-    onImage({ display: true, text: 'Changing threshold...', value: 55, data: thresholdImage });
-    await this.sleep();
-
-    const blurImage = await this.changeBlur(thresholdImage);
-    onImage({ display: true, text: 'Changing dilation...', value: 60, data: blurImage });
-    await this.sleep();
-
-    const dilatedImage = await this.changeDilation(blurImage);
-    onImage({ display: true, text: 'Finding edges...', value: 75, data: dilatedImage });
-    await this.sleep();
-
-    onImage({ display: true, text: 'Finding edges...', value: 90, data: image });
-    const edgeRect = await this.getEdge(dilatedImage);
-    await this.sleep();
-
-    for (let i = 0; i < edgeRect.length; i++) {
-      onImage({
-        display: true, text: 'Drwaing edges..', value: 95, data: {
-          rect: edgeRect[i],
-          index: i
+  async initImage(image: any, data: Array<any>, onImage: (data: ProcessDetails) => void) {
+    let edgeRect: any = undefined;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].class === 'exposure') {
+        onImage({ display: true, text: 'Changing exposure...', value: i * 10, data: image });
+        await this.sleep();
+        image = await this.changeExposure(image, +data[i].data.gamma);
+        await this.sleep();
+      }
+      if (data[i].class === 'grayStyle') {
+        onImage({ display: true, text: 'Changing gray scale...', value: i * 10, data: image });
+        await this.sleep();
+        image = await this.changeGrayStyle(image);
+        await this.sleep();
+      }
+      if (data[i].class === 'blur') {
+        onImage({ display: true, text: 'Changing blur...', value: i * 10, data: image });
+        await this.sleep();
+        image = await this.changeBlur(image, +data[i].data.kernel);
+        await this.sleep();
+      }
+      if (data[i].class === 'threshold') {
+        onImage({ display: true, text: 'Changing threshold...', value: i * 10, data: image });
+        await this.sleep();
+        image = await this.changeThreshold(image, +data[i].data.value);
+        await this.sleep();
+      }
+      if (data[i].class === 'dilation') {
+        onImage({ display: true, text: 'Changing dilation...', value: i * 10, data: image });
+        await this.sleep();
+        image = await this.changeDilation(image, data[i].data.element, +data[i].data.kernel);
+        await this.sleep();
+      }
+      if (data[i].class === 'canny') {
+        onImage({ display: true, text: 'Finding edges...', value: i * 10, data: image });
+        await this.sleep();
+        edgeRect = await this.getEdge(image, +data[i].data.maxThreshold, +data[i].data.minThreshold, +data[i].data.aperture);
+        await this.sleep();
+      }
+      if (data[i].class === 'end') {
+        await this.sleep();
+        for (let i = 0; i < edgeRect.length; i++) {
+          onImage({
+            display: true, text: 'Drwaing edges..', value: 95, data: {
+              rect: edgeRect[i],
+              index: i
+            }
+          });
+          await this.sleep();
         }
-      });
-      await this.sleep();
+        onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
+      }
     }
-
-    onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
-    await this.sleep();
-    onImage({ display: false, text: 'Complete', value: 100, data: edgeRect });
   }
 
   changeGrayStyle = (image: any) => {
@@ -75,7 +87,7 @@ export class ImageWorkerService {
     })
   }
 
-  changeBlur = (image: any) => {
+  changeBlur = (image: any, size: number) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -90,7 +102,7 @@ export class ImageWorkerService {
         const src = cv.imread(canvas);
 
         let dst = new cv.Mat();
-        cv.GaussianBlur(src, dst, new cv.Size(3, 3), 0, 0, cv.BORDER_DEFAULT);
+        cv.GaussianBlur(src, dst, new cv.Size(size, size), 0, 0, cv.BORDER_DEFAULT);
         cv.imshow(canvas, dst);
 
         resolve(canvas.toDataURL('image/png'))
@@ -125,7 +137,7 @@ export class ImageWorkerService {
     })
   }
 
-  changeDilation = (image: any) => {
+  changeDilation = (image: any, element: any, size: number) => {
     return new Promise<any>((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -139,7 +151,7 @@ export class ImageWorkerService {
 
         const src = cv.imread(canvas);
 
-        const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5));
+        const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(size, size));
 
         // Perform dilation
         const dilated = new cv.Mat();
@@ -157,7 +169,7 @@ export class ImageWorkerService {
     })
   }
 
-  changeThreshold = (image: any) => {
+  changeThreshold = (image: any, value: number) => {
     return new Promise<any>((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -172,7 +184,7 @@ export class ImageWorkerService {
         const src = cv.imread(canvas);
 
         let dst = new cv.Mat();
-        cv.threshold(src, dst, 253, 255, cv.THRESH_BINARY);
+        cv.threshold(src, dst, value, 255, cv.THRESH_BINARY);
 
         cv.imshow(canvas, dst);
 
@@ -185,7 +197,7 @@ export class ImageWorkerService {
     })
   }
 
-  getEdge = (image: any) => {
+  getEdge = (image: any, maxThreshold: number, minThreshold: number, aperture: number) => {
     return new Promise<any>((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -206,7 +218,7 @@ export class ImageWorkerService {
 
         // Detect edges using Canny edge aw
         const edges = new cv.Mat();
-        cv.Canny(src, edges, 50, 150, 3);
+        cv.Canny(src, edges, minThreshold, maxThreshold, aperture);
 
         // Find contours
         const contours = new cv.MatVector();
