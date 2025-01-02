@@ -6,6 +6,7 @@
 /out-tsc
 /bazel-out
 /runs
+/model
 
 # Node
 /node_modules
