@@ -21,12 +21,48 @@ export class PredictionService {
 
   async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
     //const model = await tf.loadGraphModel('assets/model/model.json');
-    await this.predictWithYolo8Model(image, coordinates, onPredection);
-    //await this.predictWithTfModel(image, coordinates, onPredection);
+    //await this.predictWithYolo8Model(image, coordinates, onPredection);
+    await this.predictWithTfModel(image, coordinates, onPredection);
 
   }
 
   async predictWithTfModel(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
+    const model: any = await tf.loadLayersModel('assets/model/model.json');
+
+    onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
+    await this.sleep();
+
+    for (let i = 0; i < coordinates.length; i++) {
+      const cropImage = await this.imageWorkerService.getCorpImage(image, coordinates[i].value);
+      const predictions = await new Promise<any>((resolve: any, reject: any) => {
+        const img = new Image();
+        img.onload = async () => {
+          let tensor = tf.browser.fromPixels(img, 1)
+            .resizeNearestNeighbor([256, 256])
+            .toFloat()
+            .div(255)
+            .expandDims(0);
+          let predictions = await model.predict(tensor).data();
+          debugger;
+          const array = Array.from(predictions).map((value: any, index: number) => {
+            return { value, index: this.PREDICTION_CLASSES[index] }
+          });
+          array.sort((a, b) => a.value > b.value ? -1 : 1);
+          resolve(array)
+        }
+        img.src = cropImage;
+      });
+      onPredection({
+        display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`,
+        data: { predictions: predictions, id: coordinates[i].id }, image: cropImage
+      });
+      await this.sleep();
+    }
+
+    onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
+  }
+
+  async predictWithAzureModel(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
     const model: any = await tf.loadGraphModel('assets/model_azure/model.json');
 
     onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
@@ -127,7 +163,7 @@ export class PredictionService {
     onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
   }
 
-  
+
 
   sleep = () => {
     return new Promise((resolve: any, reject: any) => {

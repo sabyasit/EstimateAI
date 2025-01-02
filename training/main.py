@@ -7,6 +7,7 @@ import tensorflow as tf
 # import tensorflowjs as tfjs
 import pathlib 
 import os
+import tensorflowjs as tfjs
 
 from tensorflow import keras 
 from tensorflow.keras import layers
@@ -14,33 +15,15 @@ from tensorflow import math
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Input, Activation
 
-def display_random_image(dir, class_type):
-    # Define directory to look in
-    img_dir = dir + "/" + class_type
 
-    # Get files from directory
-    files = os.listdir(img_dir)
-    
-    # Pick a random image from that directory
-    img_name = files[2]
-    
-    # Read in the image
-    img = mpimg.imread(img_dir + "/" + img_name)
-    
-    # Plot image with title & shape
-    plt.imshow(img)
-    plt.title(class_type)
-    plt.axis("off");
-    
-    # Show the shape of the image
-    print(f"Image shape: {img.shape}")
+
 
 training_data = tf.keras.utils.image_dataset_from_directory('data/train', 
                                             batch_size=32, 
                                             color_mode='grayscale',
                                             image_size=(256,256))
 
-validation_data = tf.keras.utils.image_dataset_from_directory('data/test',
+validation_data = tf.keras.utils.image_dataset_from_directory('data/val',
                                             batch_size=32, 
                                             color_mode='grayscale',
                                             image_size=(256,256))
@@ -48,38 +31,27 @@ validation_data = tf.keras.utils.image_dataset_from_directory('data/test',
 class_names = training_data.class_names
 print(class_names)
 
-for image_batch, labels_batch in training_data:
-  print(image_batch.shape)
-  print(labels_batch.shape)
-  break
-
-plt.figure(figsize=(10, 10))
-for images, labels in training_data.take(1):
-  for i in range(9):
-    ax = plt.subplot(3, 3, i + 1)
-    plt.imshow(images[i].numpy().astype("uint8"))
-    plt.title(class_names[labels[i]])
-    plt.axis("off")
-
 #%%
 
 AUTOTUNE = tf.data.AUTOTUNE
 training_data = training_data.shuffle(100).prefetch(buffer_size=AUTOTUNE)
 validation_data = validation_data.prefetch(buffer_size=AUTOTUNE)
 
-model = tf.keras.models.Sequential([
+probability_model = tf.keras.models.Sequential([
   layers.Rescaling(1./255, input_shape=(256, 256, 1)),
   layers.Conv2D(16, 3, padding='same', activation='relu'),
   layers.MaxPooling2D(),
-  # layers.Conv2D(32, 3, padding='same', activation='relu'),
-  # layers.MaxPooling2D(),
-  # layers.Conv2D(64, 3, padding='same', activation='relu'),
-  # layers.MaxPooling2D(),
-  layers.Dropout(0.2),
+  layers.Conv2D(32, 3, padding='same', activation='relu'),
+  layers.MaxPooling2D(),
+  layers.Conv2D(64, 3, padding='same', activation='relu'),
+  layers.MaxPooling2D(),
   layers.Flatten(),
   layers.Dense(128, activation='relu'),
-  layers.Dense(3, name="outputs")
+  layers.Dense(6)
 ])
+
+model = tf.keras.Sequential([probability_model, 
+                                    tf.keras.layers.Softmax()])
 
 model.summary();
 
@@ -95,8 +67,12 @@ history = model.fit(training_data,
 
 pd.DataFrame(history.history).plot(figsize=(20, 10))
 
+
+
+
 # %%
 model.save('model/model.h5')
+tfjs.converters.save_keras_model(model, 'model')
 
 # %%
 #sunflower_url = 'C:/Users/sabya/Desktop/Estimate AI/training/data/predict/c.png'
