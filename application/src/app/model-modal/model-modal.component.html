@@ -1,0 +1,18 @@
+<div class="model-header">
+    <h1>Select Model</h1>
+    <button mat-icon-button (click)="dialogRef.close()">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+<div mat-dialog-content>
+    <mat-radio-group aria-labelledby="example-radio-group-label" class="radio-group"
+        [(ngModel)]="model">
+        <mat-radio-button value="1">Estimate AI CNN Model <span class="free">Free</span></mat-radio-button>
+        <mat-radio-button value="2">Estimate AI YOLO Model <span class="free">Free</span></mat-radio-button>
+        <mat-radio-button value="3">Azure Custom Vision <span class="free">Free</span></mat-radio-button>
+        <mat-radio-button value="4">GPT-4o-Mini <span class="paid">Paid</span></mat-radio-button>
+    </mat-radio-group>
+</div>
+<div mat-dialog-actions align="end">
+    <button mat-raised-button color="primary" (click)="dialogRef.close(model)">Proceed</button>
+</div>

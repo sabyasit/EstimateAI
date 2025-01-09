@@ -19,11 +19,16 @@ export class PredictionService {
 
   constructor(public apiService: ApiService, public imageWorkerService: ImageWorkerService) { }
 
-  async initPredection(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
-    //const model = await tf.loadGraphModel('assets/model/model.json');
-    //await this.predictWithYolo8Model(image, coordinates, onPredection);
-    await this.predictWithTfModel(image, coordinates, onPredection);
-
+  async initPredection(type: string, image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
+    if(type === '1') {
+      await this.predictWithTfModel(image, coordinates, onPredection);
+    }
+    if(type === '2') {
+      await this.predictWithYolo8Model(image, coordinates, onPredection);
+    }
+    if(type === '3') {
+      await this.predictWithAzureModel(image, coordinates, onPredection);
+    }
   }
 
   async predictWithTfModel(image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
@@ -37,11 +42,13 @@ export class PredictionService {
       const predictions = await new Promise<any>((resolve: any, reject: any) => {
         const img = new Image();
         img.onload = async () => {
-          let tensor = tf.browser.fromPixels(img, 1)
+          let tensor = tf.browser.fromPixels(img)
             .resizeNearestNeighbor([256, 256])
+            .mean(2)
             .toFloat()
-            .div(255)
-            .expandDims(0);
+            .expandDims(0)
+            .expandDims(-1)
+            .div(255);
           let predictions = await model.predict(tensor).data();
           debugger;
           const array = Array.from(predictions).map((value: any, index: number) => {

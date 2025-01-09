@@ -28,6 +28,7 @@ import { PredictionService } from '../prediction.service';
 import { ExportService } from '../export.service';
 import { CodeModalComponent } from '../code-model/code-modal.component';
 import { SectionStepModalComponent } from '../section-step/section-step.component';
+import { ModelModalComponent } from '../model-modal/model-modal.component';
 
 @Component({
   selector: 'app-train-estimate',
@@ -428,8 +429,8 @@ export class TrainEstimateComponent implements OnInit {
       autoFocus: false,
       disableClose: true
     }).afterClosed().subscribe((value: any) => {
-      if(!value) return;
-      
+      if (!value) return;
+
       this.model.pages[this.currentPageIndex].imageNodes = value.data;
       this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
         const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
@@ -492,57 +493,65 @@ export class TrainEstimateComponent implements OnInit {
   }
 
   processPredection() {
-    this.predictionService.initPredection(this.model.pages[this.currentPageIndex].data,
-      this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
-        .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
-        .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
-      (data: ProcessDetails) => {
-        this.processPredectionImage = data;
-        if (this.processPredectionImage.data) {
-          this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
-            if (item.id === this.processPredectionImage.data.id) {
-              const weightagePredictions = this.processPredectionImage.data.predictions.filter((x: any) => x.value > .40)
-                .map((x: any) => {
-                  return {
-                    index: x.index,
-                    value: x.value,
-                    weightage: +this.model.prediction[x.index].weightage
-                  }
-                })
-                .sort((a: any, b: any) => a.weightage > b.weightage ? -1 : 1);
+    this.dialog.open(ModelModalComponent, {
+      width: '400px',
+      maxWidth: '400px',
+      autoFocus: false,
+      disableClose: true
+    }).afterClosed().subscribe((value: any) => {
+      this.predictionService.initPredection(value, this.model.pages[this.currentPageIndex].data,
+        this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
+          .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
+          .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
+        (data: ProcessDetails) => {
+          this.processPredectionImage = data;
+          if (this.processPredectionImage.data) {
+            this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
+              if (item.id === this.processPredectionImage.data.id) {
+                const weightagePredictions = this.processPredectionImage.data.predictions.filter((x: any) => x.value > .40)
+                  .map((x: any) => {
+                    return {
+                      index: x.index,
+                      value: x.value,
+                      weightage: +this.model.prediction[x.index].weightage
+                    }
+                  })
+                  .sort((a: any, b: any) => a.weightage > b.weightage ? -1 : 1);
 
-              if (weightagePredictions.length === 0) {
-                return;
-              }
-
-              for (let weightageIndex = 0; weightageIndex < weightagePredictions.length; weightageIndex++) {
-                if (weightageIndex === 0) {
-                  item.view = this.model.prediction[weightagePredictions[weightageIndex].index].view;
-                  item.logic = this.model.prediction[weightagePredictions[weightageIndex].index].logic;
-                  item.service = this.model.prediction[weightagePredictions[weightageIndex].index].service;
-                  item.unit = 1;
-                  item.name = `Section ${i}`;
-                  item.complete = true;
-                  item.data = JSON.stringify(this.processPredectionImage.data.predictions);
-                  item.element = weightagePredictions.map((x: any) => x.index.toLowerCase());
-                } else {
-                  item.unit += weightagePredictions[weightageIndex].weightage;
+                if (weightagePredictions.length === 0) {
+                  return;
                 }
-              }
 
-              const estimates = this.calculatePageHrs(item.id);
-              const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
-              if (item.commonId) {
-                (feature.getStyle() as any).getText().setText(`common`);
-              } else {
-                (feature.getStyle() as any).getText().setText(`${estimates.totalHr.toFixed(0)} Hrs | ${estimates.totalPd} Pd`);
+                for (let weightageIndex = 0; weightageIndex < weightagePredictions.length; weightageIndex++) {
+                  if (weightageIndex === 0) {
+                    item.view = this.model.prediction[weightagePredictions[weightageIndex].index].view;
+                    item.logic = this.model.prediction[weightagePredictions[weightageIndex].index].logic;
+                    item.service = this.model.prediction[weightagePredictions[weightageIndex].index].service;
+                    item.unit = 1;
+                    item.name = `Section ${i}`;
+                    item.complete = true;
+                    item.data = JSON.stringify(this.processPredectionImage.data.predictions);
+                    item.element = weightagePredictions.map((x: any) => x.index.toLowerCase());
+                  } else {
+                    item.unit += weightagePredictions[weightageIndex].weightage;
+                  }
+                }
+
+                const estimates = this.calculatePageHrs(item.id);
+                const feature: Feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(item.id)!;
+                if (item.commonId) {
+                  (feature.getStyle() as any).getText().setText(`common`);
+                } else {
+                  (feature.getStyle() as any).getText().setText(`${estimates.totalHr.toFixed(0)} Hrs | ${estimates.totalPd} Pd`);
+                }
+                (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
               }
-              (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
-            }
-          })
-          sessionStorage.setItem('model', JSON.stringify(this.model));
-        }
-      })
+            })
+            sessionStorage.setItem('model', JSON.stringify(this.model));
+          }
+        })
+    });
+
   }
 
   async setFeatureImage(id: any) {
@@ -605,7 +614,7 @@ export class TrainEstimateComponent implements OnInit {
 
   async generateCode(id: number) {
     const feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(id)!.getGeometry()!.getExtent();
-    const image  = await this.imageWorkerService.getCorpImage(this.model.pages[this.currentPageIndex].data, 
+    const image = await this.imageWorkerService.getCorpImage(this.model.pages[this.currentPageIndex].data,
       [feature[0], this.model.pages[this.currentPageIndex].height - feature[3], feature[2] - feature[0], feature[3] - feature[1]]);
     this.dialog.open(CodeModalComponent, {
       data: { image },

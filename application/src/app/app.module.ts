@@ -27,6 +27,8 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ImageWorkerService } from './image-worker.service';
 import { CodeModalComponent } from './code-model/code-modal.component';
 import { SectionStepModalComponent } from './section-step/section-step.component';
+import { ModelModalComponent } from './model-modal/model-modal.component';
+import {MatRadioModule} from '@angular/material/radio';
 
 @NgModule({
   declarations: [
@@ -36,7 +38,8 @@ import { SectionStepModalComponent } from './section-step/section-step.component
     EstimateModalComponent,
     MasterModalComponent,
     CodeModalComponent,
-    SectionStepModalComponent
+    SectionStepModalComponent,
+    ModelModalComponent
   ],
   imports: [
     BrowserModule,
@@ -57,6 +60,7 @@ import { SectionStepModalComponent } from './section-step/section-step.component
     MatProgressBarModule,
     MatTooltipModule,
     MatExpansionModule,
+    MatRadioModule,
     MonacoEditorModule.forRoot()
   ],
   providers: [ImageWorkerService],
