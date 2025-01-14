@@ -19,15 +19,18 @@ export class PredictionService {
 
   constructor(public apiService: ApiService, public imageWorkerService: ImageWorkerService) { }
 
-  async initPredection(type: string, image: any, coordinates: Array<any>, onPredection: (data: ProcessDetails) => void) {
-    if(type === '1') {
+  async initPredection(type: string, image: any, coordinates: Array<any>, url: string, apiKey: string, onPredection: (data: ProcessDetails) => void) {
+    if (type === '1') {
       await this.predictWithTfModel(image, coordinates, onPredection);
     }
-    if(type === '2') {
+    if (type === '2') {
       await this.predictWithYolo8Model(image, coordinates, onPredection);
     }
-    if(type === '3') {
+    if (type === '3') {
       await this.predictWithAzureModel(image, coordinates, onPredection);
+    }
+    if (type === '4') {
+      await this.predictGPT4oMini(image, coordinates, url, apiKey, onPredection);
     }
   }
 
@@ -170,7 +173,57 @@ export class PredictionService {
     onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
   }
 
+  async predictGPT4oMini(image: any, coordinates: Array<any>, url: string, apiKey: string, onPredection: (data: ProcessDetails) => void) {
+    onPredection({ display: true, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
+    await this.sleep();
 
+    for (let i = 0; i < coordinates.length; i++) {
+      const cropImage = await this.imageWorkerService.getCorpImage(image, coordinates[i].value);
+      const fetchData = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': apiKey,
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "system",
+              content: "You are a multilabel image classifier and a UX designer."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "The image is a screenshot of a website section. Classify the image with labels ['card', 'chart', 'form', 'menu', 'search box' ,'table']. If label not match pass 'other'. Output only the classify labels with comma separator."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: cropImage
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 10,
+          stream: false
+        }),
+      });
+
+      const responseData = await fetchData.json();
+      const predictions = responseData.choices[0].message.content.split(',').map((x: any)=> {return {index: x.trim().toLowerCase(), value: 100}});
+
+      onPredection({
+        display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`,
+        data: { predictions: predictions, id: coordinates[i].id }, image: cropImage
+      });
+      await this.sleep();
+    }
+
+    onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
+  }
 
   sleep = () => {
     return new Promise((resolve: any, reject: any) => {

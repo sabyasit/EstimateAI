@@ -8,8 +8,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 })
 export class CodeModalComponent {
   image: any;
-  lang: any = '1';
+  framework: any;
   loading: number = 1;
+  url: string = '';
+  apiKey: string = '';
   editorOptions = { theme: 'vs-dark', language: 'javascript', readOnly: true, minimap: { enabled: false } };
   code: string = '';
 
@@ -17,11 +19,7 @@ export class CodeModalComponent {
     @Inject(MAT_DIALOG_DATA) public model: any) {
     console.log(model);
     this.image = model.image;
-  }
-
-  onLangChange() {
-	this.loading = 1;
-	this.code = '';
+	this.framework = model.framework;
   }
 
   generateCode() {

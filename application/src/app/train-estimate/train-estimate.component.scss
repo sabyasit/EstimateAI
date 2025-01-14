@@ -15,8 +15,16 @@
             padding-left: 12px;
             font-size: 30px;
             font-weight: 700;
-            color: #258ce7;
+            color: #000;
             flex: 1;
+            display: flex;
+            align-items: center;
+
+            span {
+                font-size: 16px;
+                color: #000;
+                padding-left: 10px;
+            }
         }
 
         .total-estimate {
@@ -186,10 +194,10 @@
 
             .panel-page-name {
                 text-align: center;
-                padding-top: 20px;
+                padding-top: 10px;
 
                 input[type="text"] {
-                    font-size: 20px;
+                    font-size: 16px;
                     font-weight: 600;
                     color: #585757;
                     text-align: center;
@@ -206,14 +214,14 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding: 20px 0px;
+                padding: 10px 0px;
 
                 .panel-value {
-                    font-size: 45px;
+                    font-size: 25px;
                     font-weight: 700;
 
                     span {
-                        font-size: 20px;
+                        font-size: 13px;
                         font-weight: 500;
                         padding-left: 3px;
                         color: gray;
@@ -225,7 +233,7 @@
                 display: flex;
                 flex-direction: row;
                 justify-content: space-around;
-                padding-bottom: 20px;
+                padding-bottom: 10px;
                 border-bottom: 1px solid #d3d2d2;
 
                 .panel-dev-ut {

@@ -7,7 +7,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 	styleUrls: ['./model-modal.component.scss']
 })
 export class ModelModalComponent {
-	model: string = '2';
+	param = {
+		model: '2',
+		url: '',
+		apiKey: ''
+	}
 	constructor(public dialogRef: MatDialogRef<ModelModalComponent>) {
 
 	}

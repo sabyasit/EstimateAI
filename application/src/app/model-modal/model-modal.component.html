@@ -5,14 +5,23 @@
     </button>
 </div>
 <div mat-dialog-content>
-    <mat-radio-group aria-labelledby="example-radio-group-label" class="radio-group"
-        [(ngModel)]="model">
+    <mat-radio-group aria-labelledby="example-radio-group-label" class="radio-group" [(ngModel)]="param.model">
         <mat-radio-button value="1">Estimate AI CNN Model <span class="free">Free</span></mat-radio-button>
         <mat-radio-button value="2">Estimate AI YOLO Model <span class="free">Free</span></mat-radio-button>
         <mat-radio-button value="3">Azure Custom Vision <span class="free">Free</span></mat-radio-button>
         <mat-radio-button value="4">GPT-4o-Mini <span class="paid">Paid</span></mat-radio-button>
     </mat-radio-group>
+    <div *ngIf="param.model == '4'">
+        <mat-form-field style="width: 100%;">
+            <mat-label>Endpoint</mat-label>
+            <input matInput type="text" [(ngModel)]="param.url">
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Api Key</mat-label>
+            <input matInput type="Password" [(ngModel)]="param.apiKey">
+        </mat-form-field>
+    </div>
 </div>
 <div mat-dialog-actions align="end">
-    <button mat-raised-button color="primary" (click)="dialogRef.close(model)">Proceed</button>
+    <button mat-raised-button color="primary" (click)="dialogRef.close(param)">Proceed</button>
 </div>

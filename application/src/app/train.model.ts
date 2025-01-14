@@ -16,6 +16,7 @@ export interface TrainModel {
         personHours: number
     },
     projectName: string,
+    framework: string,
     pages: Array<{
         data: string,
         width: number,

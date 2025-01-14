@@ -14,6 +14,7 @@ pdfLib.GlobalWorkerOptions.workerSrc = 'assets/pdf.worker.js';
 export class FileUploadComponent {
   model: TrainModel = {
     projectName: '',
+    framework: '',
     pages: [],
     master: {
       unitTestPer: 40,

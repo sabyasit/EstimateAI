@@ -210,7 +210,11 @@ export class TrainEstimateComponent implements OnInit {
       this.deleteFeature(+event.target.id)
     })
     const li_genCode = document.createElement('li');
-    li_genCode.innerText = 'Code';
+    li_genCode.innerHTML = `Code <span style='font-size: 10px;
+    background: red;
+    border-radius: 5px;
+    color: #FFF;
+    padding: 0px 5px;'>Paid</span>`;
     li_genCode.setAttribute('id', feature.getId()!.toString());
     li_genCode.addEventListener('click', (event: any) => {
       this.generateCode(+event.target.id)
@@ -374,7 +378,8 @@ export class TrainEstimateComponent implements OnInit {
   onFocusToggleFeature(focus: boolean, id: number) {
     const feature = (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(id);
     if (feature) {
-      (feature.getStyle() as Style).getStroke()?.setWidth(focus ? 5 : 2);
+      (feature.getStyle() as Style).getStroke()?.setLineDash(focus ? [5, 5] : []);
+      (feature.getStyle() as Style).getFill()?.setColor(focus ? 'rgba(255, 255, 0, 0.6)' : 'rgba(255, 255, 0, 0.2)');
     }
     (this.map.getAllLayers()[1].getSource() as VectorSource).changed();
   }
@@ -499,11 +504,11 @@ export class TrainEstimateComponent implements OnInit {
       autoFocus: false,
       disableClose: true
     }).afterClosed().subscribe((value: any) => {
-      this.predictionService.initPredection(value, this.model.pages[this.currentPageIndex].data,
+      this.predictionService.initPredection(value.model, this.model.pages[this.currentPageIndex].data,
         this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
           .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
           .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
-        (data: ProcessDetails) => {
+        value.url, value.apiKey, (data: ProcessDetails) => {
           this.processPredectionImage = data;
           if (this.processPredectionImage.data) {
             this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
@@ -617,8 +622,8 @@ export class TrainEstimateComponent implements OnInit {
     const image = await this.imageWorkerService.getCorpImage(this.model.pages[this.currentPageIndex].data,
       [feature[0], this.model.pages[this.currentPageIndex].height - feature[3], feature[2] - feature[0], feature[3] - feature[1]]);
     this.dialog.open(CodeModalComponent, {
-      data: { image },
-      width: '800px',
+      data: { image, framework: this.model.framework },
+      width: '1000px',
       autoFocus: false,
       disableClose: true
     })

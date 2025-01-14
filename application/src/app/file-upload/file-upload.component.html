@@ -4,6 +4,13 @@
             <mat-label>Project Name</mat-label>
             <input matInput [(ngModel)] = "model.projectName">
         </mat-form-field>
+        <mat-form-field appearance="fill">
+            <mat-label>Framework</mat-label>
+            <mat-select [(ngModel)] = "model.framework">
+                <mat-option value="Angular">Angular</mat-option>
+                <mat-option value="React">React</mat-option>
+            </mat-select>
+        </mat-form-field>
         <button mat-raised-button color="primary" (click)="onNewClick(newFileUpload)">
             <mat-icon>add</mat-icon>
             Select File (Pdf)</button>

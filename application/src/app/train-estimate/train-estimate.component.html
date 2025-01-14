@@ -1,8 +1,8 @@
 <div class="container">
     <div class="header">
-        <label>{{model.projectName}}</label>
+        <label>{{model.projectName}} <span>({{model.framework}})</span></label>
         <div class="total-estimate" *ngIf="totalEstimate() as item">
-            {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+            Total - {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
         </div>
         <button mat-icon-button (click)="onMasterModal()">
             <mat-icon>settings</mat-icon>
