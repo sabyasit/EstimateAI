@@ -207,13 +207,17 @@ export class PredictionService {
               ]
             }
           ],
-          max_tokens: 10,
+          max_tokens: 15,
           stream: false
         }),
       });
 
       const responseData = await fetchData.json();
-      const predictions = responseData.choices[0].message.content.split(',').map((x: any)=> {return {index: x.trim().toLowerCase(), value: 100}});
+      if(responseData.error) {
+        alert(responseData.error.message);
+        break;
+      }
+      const predictions = responseData.choices[0].message.content.split(',').map((x: any) => { return { index: x.trim().toLowerCase(), value: 100 } });
 
       onPredection({
         display: true, text: 'Estimate prediction...', value: `${i + 1}/${coordinates.length}`,
@@ -223,6 +227,38 @@ export class PredictionService {
     }
 
     onPredection({ display: false, text: 'Estimate prediction...', value: `0/${coordinates.length}`, data: null });
+  }
+
+  getTokenCount(coordinates: Array<any>) {
+    let totalInput = 0;
+    let totalOutput = 0;
+    let totalApi = 0;
+    for (let i = 0; i < coordinates.length; i++) {
+      let width = coordinates[i].value[2];
+      let height = coordinates[i].value[3];
+
+      if (width > 1024 || height > 1024) {
+        if (width > 1024) {
+          height = (height * 1024) / width;
+          width = 1024;
+        } else {
+          width = (width * 1024) / height;
+          height = 1024;
+        }
+      }
+
+      height = Math.ceil(height / 512);
+      width = Math.ceil(width / 512);
+
+      totalInput += 64 + 85 + (170 * height * width);
+      totalOutput += 12;
+      totalApi += .0006;
+    }
+    return {
+      input: totalInput,
+      output: totalOutput,
+      api: totalApi
+    };
   }
 
   sleep = () => {

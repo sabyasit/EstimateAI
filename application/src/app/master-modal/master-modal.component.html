@@ -88,6 +88,18 @@
                 </mat-form-field>
             </div>
         </mat-tab>
+        <mat-tab label="AI Endpoint">
+            <div class="master-content">
+                <mat-form-field>
+                    <mat-label>Url</mat-label>
+                    <input matInput [(ngModel)]="model.modelEndpoint.url">
+                </mat-form-field>
+                <mat-form-field>
+                    <mat-label>Api Key</mat-label>
+                    <input matInput [(ngModel)]="model.modelEndpoint.key">
+                </mat-form-field>
+            </div>
+        </mat-tab>
     </mat-tab-group>
 </div>
 <div mat-dialog-actions align="end">

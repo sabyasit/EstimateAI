@@ -29,6 +29,7 @@ import { ExportService } from '../export.service';
 import { CodeModalComponent } from '../code-model/code-modal.component';
 import { SectionStepModalComponent } from '../section-step/section-step.component';
 import { ModelModalComponent } from '../model-modal/model-modal.component';
+import { OverviewModalComponent } from '../overview-modal/overview-modal.component';
 
 @Component({
   selector: 'app-train-estimate',
@@ -499,16 +500,22 @@ export class TrainEstimateComponent implements OnInit {
 
   processPredection() {
     this.dialog.open(ModelModalComponent, {
+      data: {
+        token: this.predictionService.getTokenCount(this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
+        .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
+        .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }))
+      },
       width: '400px',
       maxWidth: '400px',
       autoFocus: false,
       disableClose: true
     }).afterClosed().subscribe((value: any) => {
+      if(!value) return;
       this.predictionService.initPredection(value.model, this.model.pages[this.currentPageIndex].data,
         this.model.pages[this.currentPageIndex].features.filter(x => !x.complete)
           .map(x => { return { id: x.id, extent: (this.map.getAllLayers()[1].getSource() as VectorSource).getFeatureById(x.id)!.getGeometry()!.getExtent() } })
           .map(x => { return { id: x.id, value: [x.extent[0], this.model.pages[this.currentPageIndex].height - x.extent[3], x.extent[2] - x.extent[0], x.extent[3] - x.extent[1]] } }),
-        value.url, value.apiKey, (data: ProcessDetails) => {
+        this.model.modelEndpoint.url, this.model.modelEndpoint.key, (data: ProcessDetails) => {
           this.processPredectionImage = data;
           if (this.processPredectionImage.data) {
             this.model.pages[this.currentPageIndex].features.forEach((item, i) => {
@@ -622,7 +629,16 @@ export class TrainEstimateComponent implements OnInit {
     const image = await this.imageWorkerService.getCorpImage(this.model.pages[this.currentPageIndex].data,
       [feature[0], this.model.pages[this.currentPageIndex].height - feature[3], feature[2] - feature[0], feature[3] - feature[1]]);
     this.dialog.open(CodeModalComponent, {
-      data: { image, framework: this.model.framework },
+      data: { image, model: this.model },
+      width: '1000px',
+      autoFocus: false,
+      disableClose: true
+    })
+  }
+
+  onOverviewModal() {
+    this.dialog.open(OverviewModalComponent, {
+      data: this.model,
       width: '1000px',
       autoFocus: false,
       disableClose: true

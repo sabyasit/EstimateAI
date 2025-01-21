@@ -1,13 +1,5 @@
 <div class="code-header">
     <h1>Generate code</h1>
-    <mat-form-field>
-        <mat-label>Endpoint</mat-label>
-        <input matInput type="text" [(ngModel)]="url">
-    </mat-form-field>
-    <mat-form-field>
-        <mat-label>Api Key</mat-label>
-        <input matInput type="Password" [(ngModel)]="apiKey">
-    </mat-form-field>
     <button mat-raised-button color="primary" [disabled]="loading !== 1" (click)="generateCode()">Generate</button>
     <button mat-icon-button (click)="dialogRef.close()">
         <mat-icon>close</mat-icon>

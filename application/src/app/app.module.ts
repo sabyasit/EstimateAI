@@ -29,6 +29,7 @@ import { CodeModalComponent } from './code-model/code-modal.component';
 import { SectionStepModalComponent } from './section-step/section-step.component';
 import { ModelModalComponent } from './model-modal/model-modal.component';
 import {MatRadioModule} from '@angular/material/radio';
+import { OverviewModalComponent } from './overview-modal/overview-modal.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import {MatRadioModule} from '@angular/material/radio';
     MasterModalComponent,
     CodeModalComponent,
     SectionStepModalComponent,
-    ModelModalComponent
+    ModelModalComponent,
+    OverviewModalComponent
   ],
   imports: [
     BrowserModule,

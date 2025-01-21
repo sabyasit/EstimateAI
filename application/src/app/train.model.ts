@@ -49,6 +49,10 @@ export interface TrainModel {
             weightage: number,
             reusability: number
         }
+    },
+    modelEndpoint: {
+        url: string,
+        key: string
     }
 }
 

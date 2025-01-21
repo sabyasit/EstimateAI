@@ -8,12 +8,15 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 })
 export class ModelModalComponent {
 	param = {
-		model: '2',
-		url: '',
-		apiKey: ''
+		model: '2'
 	}
-	constructor(public dialogRef: MatDialogRef<ModelModalComponent>) {
-
+	constructor(public dialogRef: MatDialogRef<ModelModalComponent>,
+		@Inject(MAT_DIALOG_DATA) public data: any
+	) {
+		console.log(this.data)
 	}
 
+	calcEstimateCost() {
+		return ((.15 * (this.data.token.input / 1000000)) + (.6 * (this.data.token.output / 1000000)) + this.data.token.api).toFixed(4);
+	}
 }

@@ -30,6 +30,10 @@ export class FileUploadComponent {
       'search': { view: 'Very Simple', logic: 'Very Simple', service: 'Medium', weightage: .25, reusability: 0 },
       'table': { view: 'Medium', logic: 'Simple', service: 'Simple', weightage: .5, reusability: .25 },
       'menu': { view: 'Simple', logic: 'NA', service: 'NA', weightage: .25, reusability: 0 }
+    },
+    modelEndpoint: {
+      url: '',
+      key: ''
     }
   };
 

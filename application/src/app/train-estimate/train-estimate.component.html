@@ -4,20 +4,25 @@
         <div class="total-estimate" *ngIf="totalEstimate() as item">
             Total - {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
         </div>
-        <button mat-icon-button (click)="onMasterModal()">
-            <mat-icon>settings</mat-icon>
-        </button>
-        <button mat-icon-button [matMenuTriggerFor]="menuExport">
-            <mat-icon>cloud_download</mat-icon>
-        </button>
-        <mat-menu #menuExport="matMenu">
-            <button mat-menu-item (click)="onDownloadExcel()">
-                <span>Export Excel</span>
+        <div>
+            <button mat-icon-button (click)="onMasterModal()">
+                <mat-icon>settings</mat-icon>
             </button>
-            <button mat-menu-item (click)="onDownloadProject()">
-                <span>Export Project Json</span>
+            <button mat-icon-button (click)="onOverviewModal()">
+                <mat-icon>settings_ethernet</mat-icon>
             </button>
-        </mat-menu>
+            <button mat-icon-button [matMenuTriggerFor]="menuExport">
+                <mat-icon>cloud_download</mat-icon>
+            </button>
+            <mat-menu #menuExport="matMenu">
+                <button mat-menu-item (click)="onDownloadExcel()">
+                    <span>Export Excel</span>
+                </button>
+                <button mat-menu-item (click)="onDownloadProject()">
+                    <span>Export Project Json</span>
+                </button>
+            </mat-menu>
+        </div>
     </div>
     <div class="content">
         <div class="left-panel">
@@ -43,10 +48,12 @@
                     (click)="changeDrawMode(3)" matTooltipPosition="right" matTooltip="Edit">
                     <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-fab class="magic" color="warn" matTooltipPosition="right" matTooltip="Find sections" (click)="processImage()">
+                <button mat-fab class="magic" color="warn" matTooltipPosition="right" matTooltip="Find sections"
+                    (click)="processImage()">
                     <mat-icon>settings_overscan</mat-icon>
                 </button>
-                <button mat-fab class="predection" color="warn" matTooltipPosition="right" matTooltip="Predection" (click)="processPredection()">
+                <button mat-fab class="predection" color="warn" matTooltipPosition="right" matTooltip="Predection"
+                    (click)="processPredection()">
                     <mat-icon>flare</mat-icon>
                 </button>
                 <div class="process-loader" *ngIf="processDetailsImage?.display">
