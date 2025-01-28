@@ -30,6 +30,7 @@ import { SectionStepModalComponent } from './section-step/section-step.component
 import { ModelModalComponent } from './model-modal/model-modal.component';
 import {MatRadioModule} from '@angular/material/radio';
 import { OverviewModalComponent } from './overview-modal/overview-modal.component';
+import { MarkdownModule } from 'ngx-markdown';
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { OverviewModalComponent } from './overview-modal/overview-modal.componen
     MatTooltipModule,
     MatExpansionModule,
     MatRadioModule,
-    MonacoEditorModule.forRoot()
+    MonacoEditorModule.forRoot(),
+    MarkdownModule.forRoot()
   ],
   providers: [ImageWorkerService],
   bootstrap: [AppComponent]

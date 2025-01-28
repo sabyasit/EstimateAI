@@ -44,7 +44,10 @@
               "src/theme.scss",
               "node_modules/drawflow/dist/drawflow.min.css"
             ],
-            "scripts": ["node_modules/drawflow/dist/drawflow.min.js"]
+            "scripts": [
+              "node_modules/drawflow/dist/drawflow.min.js",
+              "node_modules/marked/marked.min.js"
+            ]
           },
           "configurations": {
             "production": {
