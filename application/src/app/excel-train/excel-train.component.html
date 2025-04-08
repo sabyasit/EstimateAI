@@ -1,0 +1,33 @@
+<div class="container">
+    <div class="header">
+        <label>{{model.projectName}} <span>({{model.framework}})</span></label>
+        <!-- <div class="total-estimate" *ngIf="totalEstimate() as item">
+            Total - {{item.totalHr.toFixed(1)}}<span>Hrs</span> | {{item.totalPd}}<span>Pd</span>
+        </div> -->
+    </div>
+    <div class="content">
+        <div style="flex: 1">
+            <table border="0" style="width: 100%; height: auto;">
+                <thead>
+                    <th style="width: 50px; border-bottom: solid 2px #000"></th>
+                    <th>Task</th>
+                    <th style="width: 200px">View</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of model.excel">
+                        <td>
+                            <mat-checkbox></mat-checkbox>
+                        </td>
+                        <td>{{row}}</td>
+                        <td>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="footer">
+        sadsadas
+    </div>
+</div>

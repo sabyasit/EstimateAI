@@ -1,0 +1,25 @@
+<h1 mat-dialog-title>Select Excel Data</h1>
+<div mat-dialog-content>
+    <form [formGroup]="sheetForm">
+        <mat-form-field appearance="fill">
+            <mat-label>Select Sheet</mat-label>
+            <mat-select formControlName="sheet">
+                <mat-option *ngFor="let sheet of sheets" [value]="sheet.id">
+                    {{sheet.name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <br>
+        <mat-form-field appearance="fill">
+            <mat-label>Select Column</mat-label>
+            <mat-select formControlName="column">
+                <mat-option *ngFor="let column of columns" [value]="column.id">
+                    {{column.name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </form>
+</div>
+<div mat-dialog-actions align="end">
+    <button mat-raised-button color="primary" (click)="processData()">Proceed</button>
+</div>

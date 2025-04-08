@@ -15,6 +15,11 @@
             <mat-icon>add</mat-icon>
             Select File (Pdf)</button>
         <input #newFileUpload type="file" (change)="onNewFileSelected($event)" style="display: none;">
+        <div class="middle" style="padding: 10px;">OR</div>
+        <button mat-raised-button color="primary" (click)="onNewExcelClick(newExcelFileUpload)">
+            <mat-icon>add</mat-icon>
+            Select File (Excel)</button>
+        <input #newExcelFileUpload type="file" (change)="onNewExcelFileSelected($event)" style="display: none;">
     </div>
     <div class="middle">OR</div>
     <div class="existing-file">

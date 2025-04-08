@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-
+import * as ExcelJS from 'exceljs';
 import * as pdfLib from 'pdfjs-dist';
 import { TrainModel } from '../train.model';
+import { MatDialog } from '@angular/material/dialog';
+import { ExcelSheetComponent } from '../excel-sheet/excel-sheet.component';
 
 pdfLib.GlobalWorkerOptions.workerSrc = 'assets/pdf.worker.js';
 
@@ -37,7 +39,7 @@ export class FileUploadComponent {
     }
   };
 
-  constructor(private router: Router) {
+  constructor(private router: Router, public dialog: MatDialog) {
 
   }
 
@@ -80,6 +82,27 @@ export class FileUploadComponent {
 
   onExistingClick(element: any) {
     element.click();
+  }
+
+  onNewExcelClick(element: any) {
+    element.click();
+  }
+
+  onNewExcelFileSelected(event: any) {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(event.target.files[0]);
+    reader.onload = () => {
+      const workbook = new ExcelJS.Workbook(); 
+      workbook.xlsx.load(reader.result as any).then(data => {
+        this.dialog.open(ExcelSheetComponent, {
+          data: data
+        }).afterClosed().subscribe(value => {
+          this.model.excel = value;
+          sessionStorage.setItem('model', JSON.stringify(this.model));
+          this.router.navigateByUrl('/excel-model');
+        })
+      })
+    };
   }
 
   onExistingFileSelected(event: any) {

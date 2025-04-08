@@ -53,7 +53,8 @@ export interface TrainModel {
     modelEndpoint: {
         url: string,
         key: string
-    }
+    },
+    excel?: any
 }
 
 export interface ProcessDetails {

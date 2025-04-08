@@ -30,6 +30,8 @@ import { SectionStepModalComponent } from './section-step/section-step.component
 import { ModelModalComponent } from './model-modal/model-modal.component';
 import {MatRadioModule} from '@angular/material/radio';
 import { OverviewModalComponent } from './overview-modal/overview-modal.component';
+import { ExcelTrainComponent } from './excel-train/excel-train.component';
+import { ExcelSheetComponent } from './excel-sheet/excel-sheet.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +43,9 @@ import { OverviewModalComponent } from './overview-modal/overview-modal.componen
     CodeModalComponent,
     SectionStepModalComponent,
     ModelModalComponent,
-    OverviewModalComponent
+    OverviewModalComponent,
+    ExcelTrainComponent,
+    ExcelSheetComponent
   ],
   imports: [
     BrowserModule,
