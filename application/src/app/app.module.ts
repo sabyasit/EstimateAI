@@ -32,6 +32,7 @@ import {MatRadioModule} from '@angular/material/radio';
 import { OverviewModalComponent } from './overview-modal/overview-modal.component';
 import { ExcelTrainComponent } from './excel-train/excel-train.component';
 import { ExcelSheetComponent } from './excel-sheet/excel-sheet.component';
+import { MarkdownModule } from 'ngx-markdown';
 
 @NgModule({
   declarations: [
@@ -67,7 +68,8 @@ import { ExcelSheetComponent } from './excel-sheet/excel-sheet.component';
     MatTooltipModule,
     MatExpansionModule,
     MatRadioModule,
-    MonacoEditorModule.forRoot()
+    MonacoEditorModule.forRoot(),
+    MarkdownModule.forRoot()
   ],
   providers: [ImageWorkerService],
   bootstrap: [AppComponent]
